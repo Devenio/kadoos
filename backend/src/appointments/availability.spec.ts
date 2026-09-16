@@ -38,4 +38,17 @@ describe('availability', () => {
       ]),
     ).toBe(true);
   });
+
+  it('treats a blocked range as a busy chair', () => {
+    const ten = new Date('2026-09-16T06:30:00.000Z');
+    const noon = new Date('2026-09-16T08:30:00.000Z');
+    const tenThirty = new Date('2026-09-16T07:00:00.000Z');
+    const eleven = new Date('2026-09-16T07:30:00.000Z');
+
+    expect(
+      isBarberFree('a', tenThirty, eleven, [
+        { barberId: 'a', startsAt: ten, endsAt: noon },
+      ]),
+    ).toBe(false);
+  });
 });

@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-label="Loading Kadoos" width="240" height="160">
+  <title>Loading Kadoos</title>
+  <defs>
+    <style>
+      .bg { fill: #f7f1e8; }
+      .chair {
+        fill: none;
+        stroke: #2c1a12;
+        stroke-width: 2.2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 200;
+        stroke-dashoffset: 200;
+        animation: draw 1.8s ease-in-out infinite alternate;
+      }
+      .word {
+        fill: #2c1a12;
+        font-family: "Cormorant Garamond", "Times New Roman", Georgia, serif;
+        font-size: 34px;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        opacity: 0;
+        animation: showWord 1.8s ease-in-out infinite;
+      }
+      .line {
+        stroke: #2c1a12;
+        stroke-width: 1;
+        stroke-linecap: round;
+        opacity: 0.25;
+        stroke-dasharray: 48;
+        stroke-dashoffset: 48;
+        animation: lineIn 1.8s ease-in-out infinite;
+      }
+      @keyframes draw {
+        0% { stroke-dashoffset: 200; }
+        60%, 100% { stroke-dashoffset: 0; }
+      }
+      @keyframes showWord {
+        0%, 35% { opacity: 0; }
+        55%, 100% { opacity: 1; }
+      }
+      @keyframes lineIn {
+        0%, 45% { stroke-dashoffset: 48; opacity: 0.1; }
+        70%, 100% { stroke-dashoffset: 0; opacity: 0.35; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .chair, .word, .line { animation: none; stroke-dashoffset: 0; opacity: 1; }
+      }
+    </style>
+  </defs>
+
+  <rect class="bg" width="240" height="160" rx="0"/>
+
+  <g transform="translate(88,28)">
+    <path class="chair" d="
+      M 18 28 V 12 c 0 -5 5 -9 13 -9 h 5 c 8 0 13 4 13 9 v 5 h -7 v -4 c 0 -2 -2 -4 -6 -4 s -6 2 -6 4 V 28
+      H 14 c -3 0 -5 2 -5 4.5 V 36 H 16
+      M 36 28 h 8 c 3 0 5 2 5 4.5 V 36 H 40
+      M 16 28 H 40
+      M 25 33 V 48
+      M 12 52 H 44 c 2 0 3.5 1.2 3.5 2.8 c 0 1.2 -1.2 2.2 -3.5 2.2 H 12 c -2.3 0 -3.5 -1 -3.5 -2.2 C 8.5 53.2 10 52 12 52 Z
+    "/>
+  </g>
+
+  <text class="word" x="120" y="120" text-anchor="middle">Kadoos</text>
+  <line class="line" x1="96" y1="132" x2="144" y2="132"/>
+</svg>

@@ -3,7 +3,6 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 
 export async function generateMetadata({
   params,
@@ -19,24 +18,31 @@ export async function generateMetadata({
 
 export default async function PaymentCallbackPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale: rawLocale } = await params;
   if (!isLocale(rawLocale)) {
     notFound();
   }
+  const query = await searchParams;
   const dictionary = getDictionary(rawLocale);
 
   return (
-    <Suspense
-      fallback={
-        <section className="mx-auto w-full max-w-xl px-6 py-12 sm:px-8">
-          <p className="text-sm font-medium text-muted-foreground">{dictionary.pay.verifying}</p>
-        </section>
-      }
-    >
-      <PaymentCallback locale={rawLocale} dictionary={dictionary} />
-    </Suspense>
+    <PaymentCallback
+      locale={rawLocale}
+      dictionary={dictionary}
+      status={firstQuery(query.Status) || firstQuery(query.status)}
+      authority={firstQuery(query.Authority) || firstQuery(query.authority)}
+    />
   );
+}
+
+function firstQuery(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
+  }
+  return value ?? "";
 }

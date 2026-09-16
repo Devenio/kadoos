@@ -10,7 +10,9 @@ export const availabilityDaySchema = z.object({
 export const appointmentSchema = z.object({
   id: z.string(),
   code: z.string(),
-  status: z.enum(["pending_payment", "booked", "completed", "cancelled"]),
+  status: z.enum(["pending_payment", "booked", "completed", "cancelled", "no_show"]),
+  source: z.enum(["online", "walk_in"]).optional().default("online"),
+  notes: z.string().nullable().optional().default(null),
   customerName: z.string(),
   customerPhone: z.string(),
   startsAt: z.string(),
@@ -34,9 +36,11 @@ export const appointmentSchema = z.object({
     lng: z.number(),
   }),
   barber: z.object({
+    id: z.string().optional(),
     name: localizedTextSchema,
   }),
   service: z.object({
+    id: z.string().optional(),
     name: localizedTextSchema,
     durationMin: z.number(),
     priceToman: z.number(),

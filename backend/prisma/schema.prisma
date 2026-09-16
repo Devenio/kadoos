@@ -51,11 +51,14 @@ model Barber {
   bioEn     String
   bioFa     String
   sortOrder Int      @default(0)
+  active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   appointments Appointment[]
+  timeOff      BarberTimeOff[]
 
   @@index([shopId, sortOrder])
+  @@index([shopId, active])
 }
 
 model Service {
@@ -67,11 +70,27 @@ model Service {
   durationMin Int
   priceToman  Int
   sortOrder   Int      @default(0)
+  active      Boolean  @default(true)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime      @updatedAt
+  updatedAt   DateTime @updatedAt
   appointments Appointment[]
 
   @@index([shopId, sortOrder])
+  @@index([shopId, active])
+}
+
+model BarberTimeOff {
+  id        String   @id @default(cuid())
+  barberId  String
+  barber    Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  startsAt  DateTime
+  endsAt    DateTime
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([barberId, startsAt])
+  @@index([barberId, endsAt])
 }
 
 model ShopHours {
@@ -97,6 +116,12 @@ enum AppointmentStatus {
   booked
   completed
   cancelled
+  no_show
+}
+
+enum AppointmentSource {
+  online
+  walk_in
 }
 
 enum PaymentStatus {
@@ -134,6 +159,8 @@ model Appointment {
   startsAt      DateTime
   endsAt        DateTime
   status        AppointmentStatus  @default(pending_payment)
+  source        AppointmentSource  @default(online)
+  notes         String?
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
   payment       Payment?

@@ -193,8 +193,8 @@ describe('PaymentsService', () => {
       amount: 850000,
       status: 'paid',
       appointment: {
-        shop: { slug: 'farhad' },
         ...booked,
+        shop: { slug: 'farhad' },
       },
     });
     appointments.toPublicDto.mockReturnValue(booked);
@@ -204,6 +204,36 @@ describe('PaymentsService', () => {
     expect(result.ok).toBe(true);
     expect(zarinpal.verify).not.toHaveBeenCalled();
     expect(appointments.confirmPaid).not.toHaveBeenCalled();
+  });
+
+  it('treats ZarinPal code 101 as success without a second booking', async () => {
+    const booked = {
+      ...appointment,
+      status: 'booked' as const,
+      payment: { status: 'paid' as const, amount: 850000, refId: '999' },
+    };
+    prisma.payment.findUnique.mockResolvedValue({
+      id: 'pay-1',
+      appointmentId: 'appt-1',
+      amount: 850000,
+      status: 'requested',
+      appointment: {
+        ...appointment,
+        shop: { slug: 'farhad' },
+      },
+    });
+    vi.mocked(zarinpal.verify).mockResolvedValue({
+      code: 101,
+      ref_id: 999,
+      raw: { data: { code: 101 } },
+    });
+    appointments.confirmPaid.mockResolvedValue(booked);
+
+    const result = await service.verify('OK', 'A'.padEnd(36, '0'));
+
+    expect(result.ok).toBe(true);
+    expect(result.appointment?.status).toBe('booked');
+    expect(appointments.confirmPaid).toHaveBeenCalledOnce();
   });
 
   it('releases the hold when the guest cancels at the gateway', async () => {

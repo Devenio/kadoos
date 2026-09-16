@@ -132,5 +132,6 @@ function statusLabel(copy: Dictionary["booking"], status: Appointment["status"])
   if (status === "cancelled") return copy.cancelled;
   if (status === "completed") return copy.completed;
   if (status === "pending_payment") return copy.pendingPayment;
+  if (status === "no_show") return copy.noShow;
   return copy.booked;
 }

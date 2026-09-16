@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" role="img" aria-label="Kadoos">
+  <title>Kadoos</title>
+  <defs>
+    <style>
+      .mark { fill: #2c1a12; }
+      .word { fill: #2c1a12; font-family: "Cormorant Garamond", "Times New Roman", Georgia, serif; font-size: 36px; font-weight: 500; letter-spacing: 0.04em; }
+    </style>
+  </defs>
+  <!-- Monogram: quiet barber chair -->
+  <g class="mark" transform="translate(4,6)">
+    <!-- seat -->
+    <rect x="10" y="22" width="28" height="5" rx="1.5"/>
+    <!-- back -->
+    <path d="M12 22 V10 c0-4 4-7 10-7 h4 c6 0 10 3 10 7 v4 h-5 v-3 c0-1.5-1.5-3-5-3 s-5 1.5-5 3 v12"/>
+    <!-- pedestal -->
+    <rect x="21" y="27" width="6" height="14" rx="1"/>
+    <!-- base -->
+    <path d="M8 44 h32 c1.5 0 2.5 1 2.5 2.2 0 0.8-0.7 1.8-2.5 1.8 H8 c-1.8 0-2.5-1-2.5-1.8 C5.5 45 6.5 44 8 44z"/>
+    <!-- arm left -->
+    <path d="M10 24 h-4 c-2 0-3 1.2-3 3 v2 h4"/>
+    <!-- arm right -->
+    <path d="M38 24 h4 c2 0 3 1.2 3 3 v2 h-4"/>
+  </g>
+  <text class="word" x="64" y="42">Kadoos</text>
+</svg>

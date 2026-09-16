@@ -133,3 +133,17 @@ export function weekdayFromYmd(ymd: string): number {
   const [year, month, day] = ymd.split("-").map(Number);
   return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
 }
+
+export function startOfTehranWeek(ymd: string): string {
+  const daysSinceSaturday = (weekdayFromYmd(ymd) + 1) % 7;
+  return shiftYmd(ymd, -daysSinceSaturday);
+}
+
+export function barberTone(id: string): string {
+  let hash = 0;
+  for (const char of id) {
+    hash = (hash + char.charCodeAt(0) * 13) % 6;
+  }
+  const hues = [45, 220, 150, 20, 280, 80];
+  return `oklch(0.52 0.08 ${hues[hash] ?? 45})`;
+}

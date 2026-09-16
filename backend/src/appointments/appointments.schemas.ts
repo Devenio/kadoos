@@ -19,11 +19,6 @@ export const cancelBookingSchema = z.object({
   phone: z.string().trim().min(8).max(24),
 });
 
-export const updateAppointmentSchema = z.object({
-  status: z.enum(['booked', 'completed', 'cancelled']),
-});
-
 export type CreateAppointmentBody = z.infer<typeof createAppointmentSchema>;
 export type LookupBookingInput = z.infer<typeof lookupBookingSchema>;
 export type CancelBookingInput = z.infer<typeof cancelBookingSchema>;
-export type UpdateAppointmentBody = z.infer<typeof updateAppointmentSchema>;

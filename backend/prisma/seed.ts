@@ -42,6 +42,7 @@ async function main() {
   try {
     await prisma.payment.deleteMany();
     await prisma.appointment.deleteMany();
+    await prisma.barberTimeOff.deleteMany();
     await prisma.user.deleteMany();
     await prisma.shopHours.deleteMany();
     await prisma.service.deleteMany();

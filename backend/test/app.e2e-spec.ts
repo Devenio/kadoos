@@ -54,4 +54,8 @@ describe('Health (e2e)', () => {
         database: 'disconnected',
       });
   });
+
+  it('GET /desk/appointments without a cookie is 401', async () => {
+    await request(app.getHttpServer()).get('/desk/appointments').expect(401);
+  });
 });

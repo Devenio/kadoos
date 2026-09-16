@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { isValidIban } from '../payments/iban.js';
+import { isOpenNow, nextOpenDay, tehranClock } from './shop-hours.js';
 import type {
   ShopDetailDto,
   ShopHoursDto,
@@ -8,8 +9,14 @@ import type {
 } from './shops.types.js';
 
 const shopInclude = {
-  barbers: { orderBy: { sortOrder: 'asc' as const } },
-  services: { orderBy: { sortOrder: 'asc' as const } },
+  barbers: {
+    where: { active: true },
+    orderBy: { sortOrder: 'asc' as const },
+  },
+  services: {
+    where: { active: true },
+    orderBy: { sortOrder: 'asc' as const },
+  },
   hours: { orderBy: { weekday: 'asc' as const } },
 };
 

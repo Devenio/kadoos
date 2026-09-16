@@ -54,7 +54,7 @@ export class PaymentsService {
         iban: true,
         payoutReady: true,
         services: {
-          where: { id: input.serviceId },
+          where: { id: input.serviceId, active: true },
           select: { id: true, nameEn: true, priceToman: true },
         },
       },

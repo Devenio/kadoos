@@ -24,10 +24,19 @@ export type PaymentSummaryDto = {
   refId: string | null;
 };
 
+export type AppointmentStatusDto =
+  | 'pending_payment'
+  | 'booked'
+  | 'completed'
+  | 'cancelled'
+  | 'no_show';
+
 export type AppointmentDto = {
   id: string;
   code: string;
-  status: 'pending_payment' | 'booked' | 'completed' | 'cancelled';
+  status: AppointmentStatusDto;
+  source: 'online' | 'walk_in';
+  notes: string | null;
   customerName: string;
   customerPhone: string;
   startsAt: string;
@@ -42,10 +51,21 @@ export type AppointmentDto = {
     lat: number;
     lng: number;
   };
-  barber: { name: LocalizedText };
+  barber: { id: string; name: LocalizedText };
   service: {
+    id: string;
     name: LocalizedText;
     durationMin: number;
     priceToman: number;
   };
+};
+
+export type ListShopAppointmentsQuery = {
+  date?: string;
+  from?: string;
+  to?: string;
+  barberId?: string;
+  status?: AppointmentStatusDto;
+  q?: string;
+  phone?: string;
 };

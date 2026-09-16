@@ -8,19 +8,22 @@ import { verifyZarinpalPayment } from "@/lib/api/booking";
 import { rememberBooking } from "@/lib/remembered-bookings";
 import type { Appointment } from "@/types/booking";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type PaymentCallbackProps = {
   locale: Locale;
   dictionary: Dictionary;
+  status: string;
+  authority: string;
 };
 
-export function PaymentCallback({ locale, dictionary }: PaymentCallbackProps) {
+export function PaymentCallback({
+  locale,
+  dictionary,
+  status,
+  authority,
+}: PaymentCallbackProps) {
   const copy = dictionary.pay;
-  const searchParams = useSearchParams();
-  const status = searchParams.get("Status") ?? searchParams.get("status") ?? "";
-  const authority = searchParams.get("Authority") ?? searchParams.get("authority") ?? "";
 
   const [state, setState] = useState<
     | { kind: "loading" }

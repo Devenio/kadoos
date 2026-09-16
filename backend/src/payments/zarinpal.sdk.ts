@@ -1,5 +1,5 @@
+import { createRequire } from 'node:module';
 import { Injectable } from '@nestjs/common';
-import ZarinPal from 'zarinpal-node-sdk';
 import { env } from '../common/config/env.js';
 import type {
   ZarinPalCreateInput,
@@ -22,6 +22,12 @@ type SdkClient = {
     verify: (data: { amount: number; authority: string }) => Promise<unknown>;
   };
 };
+
+const require = createRequire(import.meta.url);
+const loaded = require('zarinpal-node-sdk') as {
+  ZarinPal?: new (config: { merchantId: string; sandbox: boolean }) => SdkClient;
+} & (new (config: { merchantId: string; sandbox: boolean }) => SdkClient);
+const ZarinPal = loaded.ZarinPal ?? loaded;
 
 @Injectable()
 export class ZarinPalSdkGateway implements ZarinPalGateway {

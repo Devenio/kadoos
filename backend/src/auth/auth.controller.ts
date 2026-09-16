@@ -1,10 +1,15 @@
-import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { env } from '../common/config/env.js';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe.js';
 import { AuthService } from './auth.service.js';
-import { DESK_COOKIE } from './desk.guard.js';
+import { DESK_COOKIE, DeskGuard } from './desk.guard.js';
+import {
+  changePasswordSchema,
+  type ChangePasswordBody,
+} from '../desk/desk.schemas.js';
+import type { DeskAuthedRequest } from '../desk/desk.types.js';
 
 const loginSchema = z.object({
   email: z.email(),
@@ -34,6 +39,19 @@ export class AuthController {
   @Get('me')
   me(@Req() request: Request) {
     return this.auth.me(request.cookies?.[DESK_COOKIE]);
+  }
+
+  @Patch('password')
+  @UseGuards(DeskGuard)
+  changePassword(
+    @Req() request: DeskAuthedRequest,
+    @Body(new ZodValidationPipe(changePasswordSchema)) body: ChangePasswordBody,
+  ) {
+    return this.auth.changePassword(
+      request.desk.sub,
+      body.currentPassword,
+      body.newPassword,
+    );
   }
 }
 
