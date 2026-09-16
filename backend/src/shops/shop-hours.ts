@@ -1,22 +1,51 @@
 const TEHRAN = 'Asia/Tehran';
+const TEHRAN_OFFSET_MS = 3.5 * 60 * 60 * 1000;
 
-export function tehranClock(now = new Date()): { weekday: number; minutes: number } {
+export const SLOT_MINUTES = 30;
+
+export type TehranClock = {
+  ymd: string;
+  weekday: number;
+  minutes: number;
+};
+
+export function tehranClock(now = new Date()): TehranClock {
   const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone: TEHRAN,
     weekday: 'short',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
     hourCycle: 'h23',
   }).formatToParts(now);
 
-  const weekdayName = parts.find((part) => part.type === 'weekday')?.value ?? 'Sun';
-  const hour = Number(parts.find((part) => part.type === 'hour')?.value ?? '0');
-  const minute = Number(parts.find((part) => part.type === 'minute')?.value ?? '0');
+  const value = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? '';
 
   return {
-    weekday: weekdayIndex(weekdayName),
-    minutes: hour * 60 + minute,
+    ymd: `${value('year')}-${value('month')}-${value('day')}`,
+    weekday: weekdayIndex(value('weekday')),
+    minutes: Number(value('hour')) * 60 + Number(value('minute')),
   };
+}
+
+export function addDaysYmd(ymd: string, days: number): string {
+  const [year, month, day] = ymd.split('-').map(Number);
+  const next = new Date(Date.UTC(year, month - 1, day + days));
+  return next.toISOString().slice(0, 10);
+}
+
+export function weekdayFromYmd(ymd: string): number {
+  const [year, month, day] = ymd.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
+export function tehranLocalToUtc(ymd: string, hhmm: string): Date {
+  const [year, month, day] = ymd.split('-').map(Number);
+  const [hour, minute] = hhmm.split(':').map(Number);
+  return new Date(Date.UTC(year, month - 1, day, hour, minute) - TEHRAN_OFFSET_MS);
 }
 
 export function minutesFromClock(value: string | null | undefined): number | null {
@@ -32,9 +61,15 @@ export function minutesFromClock(value: string | null | undefined): number | nul
   return hours * 60 + minutes;
 }
 
+export function clockFromMinutes(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+}
+
 export function isOpenNow(
   hours: { weekday: number; closed: boolean; opensAt: string | null; closesAt: string | null },
-  clock = tehranClock(),
+  clock: { weekday: number; minutes: number } = tehranClock(),
 ): boolean {
   if (hours.weekday !== clock.weekday || hours.closed) {
     return false;
@@ -51,7 +86,7 @@ export function isOpenNow(
 
 export function nextOpenDay<
   T extends { weekday: number; closed: boolean; opensAt: string | null },
->(hours: T[], from = tehranClock()): T | null {
+>(hours: T[], from: { weekday: number; minutes: number } = tehranClock()): T | null {
   for (let offset = 1; offset <= 7; offset += 1) {
     const weekday = (from.weekday + offset) % 7;
     const candidate = hours.find((item) => item.weekday === weekday);

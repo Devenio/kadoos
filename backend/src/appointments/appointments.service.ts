@@ -1,0 +1,310 @@
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { randomBytes } from 'node:crypto';
+import { PrismaService } from '../prisma/prisma.service.js';
+import {
+  addDaysYmd,
+  tehranClock,
+  tehranLocalToUtc,
+  weekdayFromYmd,
+} from '../shops/shop-hours.js';
+import { isBarberFree, startTimesForDay } from './availability.js';
+import type {
+  AppointmentDto,
+  AvailabilityDayDto,
+  CreateAppointmentInput,
+} from './appointments.types.js';
+
+const appointmentInclude = {
+  shop: true,
+  barber: true,
+  service: true,
+} as const;
+
+@Injectable()
+export class AppointmentsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async availability(
+    slug: string,
+    serviceId: string,
+    barberId?: string,
+  ): Promise<AvailabilityDayDto[]> {
+    const shop = await this.shopOrThrow(slug);
+    const service = shop.services.find((item) => item.id === serviceId);
+    if (!service) {
+      throw new BadRequestException('Unknown service');
+    }
+
+    const barbers = barberId
+      ? shop.barbers.filter((item) => item.id === barberId)
+      : shop.barbers;
+    if (barbers.length === 0) {
+      throw new BadRequestException('Unknown barber');
+    }
+
+    const clock = tehranClock();
+    const rangeStart = tehranLocalToUtc(clock.ymd, '00:00');
+    const rangeEnd = tehranLocalToUtc(addDaysYmd(clock.ymd, 8), '00:00');
+    const busy = await this.prisma.appointment.findMany({
+      where: {
+        shopId: shop.id,
+        status: 'booked',
+        startsAt: { lt: rangeEnd },
+        endsAt: { gt: rangeStart },
+        barberId: { in: barbers.map((item) => item.id) },
+      },
+      select: { barberId: true, startsAt: true, endsAt: true },
+    });
+
+    const days: AvailabilityDayDto[] = [];
+    for (let offset = 0; offset < 7; offset += 1) {
+      const ymd = addDaysYmd(clock.ymd, offset);
+      const weekday = weekdayFromYmd(ymd);
+      const hours = shop.hours.find((item) => item.weekday === weekday);
+      const starts = hours ? startTimesForDay(hours, service.durationMin) : [];
+      const slots = starts.filter((hhmm) => {
+        if (offset === 0) {
+          const startMinutes =
+            Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5));
+          if (startMinutes <= clock.minutes) {
+            return false;
+          }
+        }
+        const start = tehranLocalToUtc(ymd, hhmm);
+        const end = new Date(start.getTime() + service.durationMin * 60_000);
+        return barbers.some((barber) =>
+          isBarberFree(barber.id, start, end, busy),
+        );
+      });
+      days.push({ date: ymd, weekday, slots });
+    }
+
+    return days;
+  }
+
+  async create(
+    slug: string,
+    input: CreateAppointmentInput,
+  ): Promise<AppointmentDto> {
+    const shop = await this.shopOrThrow(slug);
+    const service = shop.services.find((item) => item.id === input.serviceId);
+    if (!service) {
+      throw new BadRequestException('Unknown service');
+    }
+
+    const start = tehranLocalToUtc(input.date, input.time);
+    const end = new Date(start.getTime() + service.durationMin * 60_000);
+    if (start.getTime() <= Date.now()) {
+      throw new BadRequestException('That time has already passed');
+    }
+
+    const clock = tehranClock();
+    const lastDate = addDaysYmd(clock.ymd, 6);
+    if (input.date < clock.ymd || input.date > lastDate) {
+      throw new BadRequestException('Pick a day in the next week');
+    }
+
+    const created = await this.prisma.$transaction(async (tx) => {
+      const candidates = input.barberId
+        ? shop.barbers.filter((item) => item.id === input.barberId)
+        : shop.barbers;
+      if (candidates.length === 0) {
+        throw new BadRequestException('Unknown barber');
+      }
+
+      const busy = await tx.appointment.findMany({
+        where: {
+          shopId: shop.id,
+          status: 'booked',
+          startsAt: { lt: end },
+          endsAt: { gt: start },
+          barberId: { in: candidates.map((item) => item.id) },
+        },
+        select: { barberId: true, startsAt: true, endsAt: true },
+      });
+
+      const barber = candidates.find((item) =>
+        isBarberFree(item.id, start, end, busy),
+      );
+      if (!barber) {
+        throw new ConflictException('That chair is no longer free');
+      }
+
+      let code = '';
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const next = randomBytes(3).toString('hex').toUpperCase();
+        const exists = await tx.appointment.findUnique({
+          where: { code: next },
+        });
+        if (!exists) {
+          code = next;
+          break;
+        }
+      }
+      if (!code) {
+        throw new Error('Could not allocate a booking code');
+      }
+
+      return tx.appointment.create({
+        data: {
+          code,
+          shopId: shop.id,
+          barberId: barber.id,
+          serviceId: service.id,
+          customerName: input.customerName.trim(),
+          customerPhone: normalizePhone(input.customerPhone),
+          startsAt: start,
+          endsAt: end,
+        },
+        include: appointmentInclude,
+      });
+    });
+
+    return toDto(created);
+  }
+
+  async lookup(code: string, phone: string): Promise<AppointmentDto> {
+    const appointment = await this.prisma.appointment.findFirst({
+      where: {
+        code: code.trim().toUpperCase(),
+        customerPhone: normalizePhone(phone),
+      },
+      include: appointmentInclude,
+    });
+    if (!appointment) {
+      throw new NotFoundException('Booking not found');
+    }
+    return toDto(appointment);
+  }
+
+  async cancelByGuest(code: string, phone: string): Promise<AppointmentDto> {
+    const appointment = await this.prisma.appointment.findFirst({
+      where: {
+        code: code.trim().toUpperCase(),
+        customerPhone: normalizePhone(phone),
+        status: 'booked',
+      },
+    });
+    if (!appointment) {
+      throw new NotFoundException('Booking not found');
+    }
+    if (appointment.startsAt.getTime() <= Date.now()) {
+      throw new BadRequestException(
+        'This booking can no longer be cancelled here',
+      );
+    }
+
+    const updated = await this.prisma.appointment.update({
+      where: { id: appointment.id },
+      data: { status: 'cancelled' },
+      include: appointmentInclude,
+    });
+    return toDto(updated);
+  }
+
+  async listForShop(
+    shopId: string,
+    date: string,
+    phone?: string,
+  ): Promise<AppointmentDto[]> {
+    const dayStart = tehranLocalToUtc(date, '00:00');
+    const dayEnd = tehranLocalToUtc(addDaysYmd(date, 1), '00:00');
+    const rows = await this.prisma.appointment.findMany({
+      where: {
+        shopId,
+        ...(phone ? { customerPhone: normalizePhone(phone) } : {}),
+        startsAt: { gte: dayStart, lt: dayEnd },
+      },
+      orderBy: { startsAt: 'asc' },
+      include: appointmentInclude,
+    });
+    return rows.map(toDto);
+  }
+
+  async updateStatus(
+    shopId: string,
+    id: string,
+    status: 'booked' | 'completed' | 'cancelled',
+  ): Promise<AppointmentDto> {
+    const existing = await this.prisma.appointment.findFirst({
+      where: { id, shopId },
+    });
+    if (!existing) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    const updated = await this.prisma.appointment.update({
+      where: { id },
+      data: { status },
+      include: appointmentInclude,
+    });
+    return toDto(updated);
+  }
+
+  private async shopOrThrow(slug: string) {
+    const shop = await this.prisma.shop.findFirst({
+      where: { slug, published: true },
+      include: {
+        barbers: { orderBy: { sortOrder: 'asc' } },
+        services: true,
+        hours: true,
+      },
+    });
+    if (!shop) {
+      throw new NotFoundException('Shop not found');
+    }
+    return shop;
+  }
+}
+
+function toDto(row: {
+  id: string;
+  code: string;
+  customerName: string;
+  customerPhone: string;
+  startsAt: Date;
+  endsAt: Date;
+  status: 'booked' | 'completed' | 'cancelled';
+  shop: { slug: string; nameEn: string; nameFa: string };
+  barber: { nameEn: string; nameFa: string };
+  service: {
+    nameEn: string;
+    nameFa: string;
+    durationMin: number;
+    priceToman: number;
+  };
+}): AppointmentDto {
+  return {
+    id: row.id,
+    code: row.code,
+    status: row.status,
+    customerName: row.customerName,
+    customerPhone: row.customerPhone,
+    startsAt: row.startsAt.toISOString(),
+    endsAt: row.endsAt.toISOString(),
+    shop: {
+      slug: row.shop.slug,
+      name: { en: row.shop.nameEn, fa: row.shop.nameFa },
+    },
+    barber: { name: { en: row.barber.nameEn, fa: row.barber.nameFa } },
+    service: {
+      name: { en: row.service.nameEn, fa: row.service.nameFa },
+      durationMin: row.service.durationMin,
+      priceToman: row.service.priceToman,
+    },
+  };
+}
+
+export function normalizePhone(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  const local = digits.startsWith('98') ? `0${digits.slice(2)}` : digits;
+  if (!/^09\d{9}$/.test(local)) {
+    throw new BadRequestException('Enter a mobile number like 09121234567');
+  }
+  return local;
+}

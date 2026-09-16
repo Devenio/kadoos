@@ -32,7 +32,7 @@ export function ShopsUnavailable({ dictionary, onRetryHref }: ShopStateProps) {
       </p>
       {onRetryHref ? (
         <div className="mt-8">
-          <Button asChild size="lg">
+          <Button asChild size="touch">
             <a href={onRetryHref}>{dictionary.retry}</a>
           </Button>
         </div>

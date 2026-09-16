@@ -12,15 +12,16 @@ export class ApiError extends Error {
 
 type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
+  baseUrl?: string;
 };
 
 export async function apiClient<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { body, headers, ...rest } = options;
+  const { body, headers, baseUrl, ...rest } = options;
 
-  const response = await fetch(`${env.NEXT_PUBLIC_API_URL}${path}`, {
+  const response = await fetch(`${baseUrl ?? env.NEXT_PUBLIC_API_URL}${path}`, {
     ...rest,
     headers: {
       Accept: "application/json",
@@ -31,7 +32,18 @@ export async function apiClient<T>(
   });
 
   if (!response.ok) {
-    throw new ApiError(`Request failed: ${response.status}`, response.status);
+    let message = `Request failed: ${response.status}`;
+    try {
+      const payload = (await response.json()) as { message?: string | string[] };
+      if (typeof payload.message === "string") {
+        message = payload.message;
+      } else if (Array.isArray(payload.message) && payload.message[0]) {
+        message = payload.message[0];
+      }
+    } catch {
+      // keep fallback
+    }
+    throw new ApiError(message, response.status);
   }
 
   if (response.status === 204) {

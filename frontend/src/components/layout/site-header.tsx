@@ -15,8 +15,7 @@ type SiteHeaderProps = {
 export function SiteHeader({ locale, dictionary, theme }: SiteHeaderProps) {
   const navigation = [
     { href: `/${locale}/shops`, label: dictionary.nav.shops },
-    { href: `/${locale}#how-it-works`, label: dictionary.nav.howItWorks },
-    { href: `/${locale}#for-barbers`, label: dictionary.nav.forBarbers },
+    { href: `/${locale}/booking`, label: dictionary.nav.booking },
   ] as const;
 
   return (
@@ -37,7 +36,7 @@ export function SiteHeader({ locale, dictionary, theme }: SiteHeaderProps) {
             <Link
               key={item.href}
               href={item.href}
-              className="transition-colors hover:text-foreground"
+              className="inline-flex min-h-11 items-center transition-colors hover:text-foreground"
             >
               {item.label}
             </Link>
@@ -46,21 +45,27 @@ export function SiteHeader({ locale, dictionary, theme }: SiteHeaderProps) {
         <div className="flex items-center gap-1 sm:gap-2">
           <LanguageSwitcher locale={locale} labels={dictionary.language} />
           <ThemeSwitcher currentTheme={theme} labels={dictionary.theme} />
-          <Button asChild size="sm">
+          <Button asChild size="touch" className="hidden sm:inline-flex">
             <Link href={`/${locale}/shops`}>{dictionary.nav.book}</Link>
           </Button>
         </div>
       </div>
-      <nav className="relative flex items-center gap-5 border-t border-border/70 px-6 py-3 text-sm text-muted-foreground md:hidden">
+      <nav className="relative flex items-center gap-6 border-t border-border/70 px-6 py-2 text-sm text-muted-foreground md:hidden">
         {navigation.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className="transition-colors hover:text-foreground"
+            className="inline-flex min-h-11 items-center transition-colors hover:text-foreground"
           >
             {item.label}
           </Link>
         ))}
+        <Link
+          href={`/${locale}/shops`}
+          className="ms-auto inline-flex min-h-11 items-center text-foreground"
+        >
+          {dictionary.nav.book}
+        </Link>
       </nav>
     </header>
   );

@@ -35,14 +35,14 @@ export function Hero({ locale, dictionary }: HeroProps) {
         {dictionary.body}
       </p>
       <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Button asChild size="xl">
+        <Button asChild size="touch">
           <Link href={`/${locale}/shops`}>
             {dictionary.primary}
             <ArrowRightIcon className="rtl:rotate-180" />
           </Link>
         </Button>
-        <Button asChild size="xl" variant="outline">
-          <Link href={`/${locale}#for-barbers`}>{dictionary.secondary}</Link>
+        <Button asChild size="touch" variant="outline">
+          <Link href={`/${locale}/booking`}>{dictionary.secondary}</Link>
         </Button>
       </div>
     </section>

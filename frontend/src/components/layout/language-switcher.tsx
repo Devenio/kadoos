@@ -52,7 +52,7 @@ export function LanguageSwitcher({ locale, labels }: LanguageSwitcherProps) {
         aria-label={labels.label}
         onClick={() => setOpen((value) => !value)}
         className={cn(
-          "inline-flex h-8 items-center gap-2 rounded-full border border-border bg-background ps-1 pe-2.5 text-sm text-foreground transition-colors",
+          "inline-flex h-11 items-center gap-2 rounded-full border border-border bg-background ps-1.5 pe-3 text-sm text-foreground transition-colors",
           "hover:bg-muted focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
           "active:translate-y-px",
           open && "bg-muted",

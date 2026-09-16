@@ -1,6 +1,8 @@
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 type ForBarbersProps = {
   locale: Locale;
@@ -33,6 +35,11 @@ export function ForBarbers({ locale, dictionary }: ForBarbersProps) {
           <p className="mt-6 max-w-lg text-base leading-8 text-muted-foreground">
             {dictionary.body}
           </p>
+          <div className="mt-8">
+            <Button asChild size="touch">
+              <Link href={`/${locale}/desk`}>{dictionary.desk}</Link>
+            </Button>
+          </div>
         </div>
         <ul className="space-y-0 border-t border-border">
           {dictionary.items.map((item) => (

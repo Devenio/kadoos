@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
@@ -32,12 +33,14 @@ async function main() {
   const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 
   try {
+    await prisma.appointment.deleteMany();
+    await prisma.user.deleteMany();
     await prisma.shopHours.deleteMany();
     await prisma.service.deleteMany();
     await prisma.barber.deleteMany();
     await prisma.shop.deleteMany();
 
-    await prisma.shop.create({
+    const farhad = await prisma.shop.create({
       data: {
         slug: 'farhad',
         sortOrder: 1,
@@ -89,7 +92,7 @@ async function main() {
       },
     });
 
-    await prisma.shop.create({
+    const siah = await prisma.shop.create({
       data: {
         slug: 'siah',
         sortOrder: 2,
@@ -140,7 +143,7 @@ async function main() {
       },
     });
 
-    await prisma.shop.create({
+    const khosrow = await prisma.shop.create({
       data: {
         slug: 'khosrow',
         sortOrder: 3,
@@ -189,6 +192,30 @@ async function main() {
           create: hours({ closedOn: [5], opensAt: '09:00', closesAt: '21:00' }),
         },
       },
+    });
+
+    const passwordHash = await bcrypt.hash('chair123', 10);
+    await prisma.user.createMany({
+      data: [
+        {
+          email: 'farhad@kadoos.local',
+          passwordHash,
+          name: 'Farhad',
+          shopId: farhad.id,
+        },
+        {
+          email: 'siah@kadoos.local',
+          passwordHash,
+          name: 'Navid',
+          shopId: siah.id,
+        },
+        {
+          email: 'khosrow@kadoos.local',
+          passwordHash,
+          name: 'Khosrow',
+          shopId: khosrow.id,
+        },
+      ],
     });
   } finally {
     await prisma.$disconnect();

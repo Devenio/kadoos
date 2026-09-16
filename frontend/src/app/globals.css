@@ -214,6 +214,12 @@ html[lang="fa"] {
     font-family: var(--body-font);
   }
 
+  input,
+  button,
+  a {
+    touch-action: manipulation;
+  }
+
   ::selection {
     background: color-mix(in oklch, var(--primary) 18%, transparent);
   }

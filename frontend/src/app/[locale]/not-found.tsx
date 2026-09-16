@@ -21,7 +21,7 @@ export default async function NotFound() {
         {dictionary.notFound.body}
       </p>
       <div className="mt-8">
-        <Button asChild size="lg">
+        <Button asChild size="touch">
           <Link href={`/${locale}`}>{dictionary.notFound.back}</Link>
         </Button>
       </div>

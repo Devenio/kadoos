@@ -27,7 +27,7 @@ export default function Error({
         {dictionary.error.body}
       </p>
       <div className="mt-8">
-        <Button onClick={reset} size="lg">
+        <Button onClick={reset} size="touch">
           {dictionary.error.retry}
         </Button>
       </div>

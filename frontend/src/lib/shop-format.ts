@@ -72,6 +72,60 @@ export function hoursLabel(locale: Locale, hours: ShopHours): string {
   return `${formatClock(locale, hours.opensAt)}–${formatClock(locale, hours.closesAt)}`;
 }
 
+export function formatAppointmentWhen(locale: Locale, iso: string): string {
+  return new Intl.DateTimeFormat(locale === "fa" ? "fa-IR" : "en-GB", {
+    timeZone: "Asia/Tehran",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(new Date(iso));
+}
+
+export function formatDayButton(locale: Locale, ymd: string, weekday: number): { day: string; date: string } {
+  const day = weekdayLabel(locale, weekday);
+  const [, month, date] = ymd.split("-");
+  const dateLabel =
+    locale === "fa"
+      ? toFaDigits(`${Number(date)} / ${Number(month)}`)
+      : `${Number(date)}/${Number(month)}`;
+  return { day, date: dateLabel };
+}
+
 export function toFaDigits(value: string): string {
   return value.replace(/[0-9]/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)] ?? digit);
+}
+
+export function formatPhone(locale: Locale, phone: string): string {
+  return locale === "fa" ? toFaDigits(phone) : phone;
+}
+
+export function formatAppointmentClock(locale: Locale, iso: string): string {
+  return new Intl.DateTimeFormat(locale === "fa" ? "fa-IR" : "en-GB", {
+    timeZone: "Asia/Tehran",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(new Date(iso));
+}
+
+export function tehranYmd(date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tehran",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+export function shiftYmd(ymd: string, days: number): string {
+  const [year, month, day] = ymd.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
+}
+
+export function weekdayFromYmd(ymd: string): number {
+  const [year, month, day] = ymd.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
 }

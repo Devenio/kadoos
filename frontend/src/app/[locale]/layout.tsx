@@ -54,7 +54,7 @@ export default async function LocaleLayout({
       <DocumentLocale locale={locale} />
       <SiteHeader locale={locale} dictionary={dictionary} theme={theme} />
       <main className="flex flex-1 flex-col">{children}</main>
-      <SiteFooter dictionary={dictionary} />
+      <SiteFooter locale={locale} dictionary={dictionary} />
     </div>
   );
 }

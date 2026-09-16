@@ -27,6 +27,8 @@ model Shop {
   barbers          Barber[]
   services         Service[]
   hours            ShopHours[]
+  appointments     Appointment[]
+  owners           User[]
 
   @@index([published, sortOrder])
 }
@@ -44,6 +46,7 @@ model Barber {
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  appointments Appointment[]
 
   @@index([shopId, sortOrder])
 }
@@ -58,7 +61,8 @@ model Service {
   priceToman  Int
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime      @updatedAt
+  appointments Appointment[]
 
   @@index([shopId, sortOrder])
 }
@@ -75,4 +79,51 @@ model ShopHours {
   updatedAt DateTime @updatedAt
 
   @@unique([shopId, weekday])
+}
+
+enum UserRole {
+  OWNER
+}
+
+enum AppointmentStatus {
+  booked
+  completed
+  cancelled
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole @default(OWNER)
+  shopId       String
+  shop         Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([shopId])
+}
+
+model Appointment {
+  id            String             @id @default(cuid())
+  code          String             @unique
+  shopId        String
+  shop          Shop               @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  barberId      String
+  barber        Barber             @relation(fields: [barberId], references: [id], onDelete: Restrict)
+  serviceId     String
+  service       Service            @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  customerName  String
+  customerPhone String
+  startsAt      DateTime
+  endsAt        DateTime
+  status        AppointmentStatus  @default(booked)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([shopId, startsAt])
+  @@index([barberId, startsAt])
+  @@index([customerPhone])
+  @@index([status, startsAt])
 }
