@@ -5,6 +5,7 @@ import { AppointmentsModule } from './appointments/appointments.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { DeskModule } from './desk/desk.module.js';
 import { HealthModule } from './health/health.module.js';
+import { PaymentsModule } from './payments/payments.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ShopsModule } from './shops/shops.module.js';
 
@@ -18,6 +19,7 @@ import { ShopsModule } from './shops/shops.module.js';
     HealthModule,
     ShopsModule,
     AppointmentsModule,
+    PaymentsModule,
     AuthModule,
     DeskModule,
   ],

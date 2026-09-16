@@ -10,11 +10,20 @@ export const availabilityDaySchema = z.object({
 export const appointmentSchema = z.object({
   id: z.string(),
   code: z.string(),
-  status: z.enum(["booked", "completed", "cancelled"]),
+  status: z.enum(["pending_payment", "booked", "completed", "cancelled"]),
   customerName: z.string(),
   customerPhone: z.string(),
   startsAt: z.string(),
   endsAt: z.string(),
+  payment: z
+    .object({
+      status: z.enum(["requested", "paid", "failed", "cancelled"]),
+      amount: z.number(),
+      refId: z.string().nullable(),
+    })
+    .nullable()
+    .optional()
+    .default(null),
   shop: z.object({
     slug: z.string(),
     name: localizedTextSchema,

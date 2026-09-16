@@ -30,6 +30,8 @@ const shop = {
   lat: 35.7572,
   lng: 51.4099,
   photoUrl: 'https://example.com/farhad.jpg',
+  iban: 'IR130570028780010957775103',
+  payoutReady: true,
   barbers: [
     {
       id: 'barber-1',

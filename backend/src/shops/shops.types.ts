@@ -46,4 +46,5 @@ export type ShopDetailDto = ShopSummaryDto & {
   barbers: BarberDto[];
   services: ServiceDto[];
   hours: ShopHoursDto[];
+  payoutReady: boolean;
 };

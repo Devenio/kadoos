@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
+import { isValidIban, normalizeIban } from '../src/payments/iban.js';
 
 const weekdays = [0, 1, 2, 3, 4, 5, 6] as const;
 
@@ -32,7 +33,14 @@ async function main() {
   const pool = new Pool({ connectionString });
   const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 
+  const seedIbanRaw = process.env.SEED_SHOP_IBAN?.trim() || '';
+  const seedIban = isValidIban(seedIbanRaw) ? normalizeIban(seedIbanRaw) : null;
+  if (process.env.SEED_SHOP_IBAN && !seedIban) {
+    console.warn('SEED_SHOP_IBAN is not a valid IR IBAN; shops will not accept paid bookings.');
+  }
+
   try {
+    await prisma.payment.deleteMany();
     await prisma.appointment.deleteMany();
     await prisma.user.deleteMany();
     await prisma.shopHours.deleteMany();
@@ -62,6 +70,8 @@ async function main() {
         lng: 51.4099,
         photoUrl:
           'https://images.unsplash.com/photo-1503951914875-bfd160836fd3?auto=format&fit=crop&w=1400&q=80',
+        iban: seedIban,
+        payoutReady: Boolean(seedIban),
         barbers: {
           create: [
             {
@@ -120,6 +130,8 @@ async function main() {
         lng: 51.4347,
         photoUrl:
           'https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=1400&q=80',
+        iban: seedIban,
+        payoutReady: Boolean(seedIban),
         barbers: {
           create: [
             {
@@ -177,6 +189,8 @@ async function main() {
         lng: 51.3967,
         photoUrl:
           'https://images.unsplash.com/photo-1599351431202-1e0f013fdcec?auto=format&fit=crop&w=1400&q=80',
+        iban: seedIban,
+        payoutReady: Boolean(seedIban),
         barbers: {
           create: [
             {

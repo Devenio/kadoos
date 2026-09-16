@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { ApiError } from "@/lib/api/client";
-import { createAppointment, getAvailability } from "@/lib/api/booking";
-import { rememberBooking } from "@/lib/remembered-bookings";
+import { getAvailability, requestZarinpalPayment } from "@/lib/api/booking";
 import { isMobilePhone } from "@/lib/phone";
 import {
   formatClock,
@@ -104,20 +103,18 @@ export function BookingFlow({ locale, dictionary, shop }: BookingFlowProps) {
     setSubmitting(true);
     setError(undefined);
     try {
-      const created = await createAppointment(shop.slug, {
+      const started = await requestZarinpalPayment(shop.slug, {
         serviceId,
         barberId: barberId === "any" ? undefined : barberId,
         date,
         time,
         customerName: name,
         customerPhone: phone,
+        locale,
       });
-      rememberBooking(created);
-      setBooking(created);
-      setStep("done");
+      window.location.assign(started.redirectUrl);
     } catch (caught) {
       setError(caught instanceof ApiError ? userFacingError(caught, copy) : copy.submitError);
-    } finally {
       setSubmitting(false);
     }
   }
@@ -300,8 +297,11 @@ export function BookingFlow({ locale, dictionary, shop }: BookingFlowProps) {
                 {barber ? text(locale, barber.name) : copy.anyBarber}
                 {" · "}
                 {formatClock(locale, time)}
+                {" · "}
+                {formatPrice(locale, service.priceToman)}
               </p>
             ) : null}
+            {service ? <p className="text-sm leading-7 text-muted-foreground">{copy.payHint.replace("{price}", formatPrice(locale, service.priceToman))}</p> : null}
           </form>
         ) : null}
       </div>
@@ -314,14 +314,18 @@ export function BookingFlow({ locale, dictionary, shop }: BookingFlowProps) {
 
       <div className="mt-10 flex flex-col gap-3">
         {step === "details" ? (
-          <Button
-            size="touch"
-            disabled={name.trim().length < 2 || !isMobilePhone(phone)}
-            loading={submitting}
-            onClick={() => void submit()}
-          >
-            {copy.confirm}
-          </Button>
+          shop.payoutReady ? (
+            <Button
+              size="touch"
+              disabled={name.trim().length < 2 || !isMobilePhone(phone)}
+              loading={submitting}
+              onClick={() => void submit()}
+            >
+              {copy.confirm}
+            </Button>
+          ) : (
+            <p className="text-base text-muted-foreground">{copy.ibanMissing}</p>
+          )
         ) : null}
         {step !== "service" ? (
           <Button size="touch" variant="outline" onClick={goBack}>
@@ -375,6 +379,9 @@ function toFaStep(value: number): string {
 function userFacingError(error: ApiError, copy: Dictionary["book"]): string {
   if (error.status === 409) {
     return copy.taken;
+  }
+  if (error.code === "SHOP_IBAN_REQUIRED") {
+    return copy.ibanMissing;
   }
   if (error.message.includes("mobile") || error.message.includes("0912")) {
     return copy.phoneInvalid;

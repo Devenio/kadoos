@@ -18,14 +18,21 @@ export type CreateAppointmentInput = {
   customerPhone: string;
 };
 
+export type PaymentSummaryDto = {
+  status: 'requested' | 'paid' | 'failed' | 'cancelled';
+  amount: number;
+  refId: string | null;
+};
+
 export type AppointmentDto = {
   id: string;
   code: string;
-  status: 'booked' | 'completed' | 'cancelled';
+  status: 'pending_payment' | 'booked' | 'completed' | 'cancelled';
   customerName: string;
   customerPhone: string;
   startsAt: string;
   endsAt: string;
+  payment: PaymentSummaryDto | null;
   shop: {
     slug: string;
     name: LocalizedText;

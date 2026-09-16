@@ -3,9 +3,7 @@ import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe.js';
 import { AppointmentsService } from './appointments.service.js';
 import {
   cancelBookingSchema,
-  createAppointmentSchema,
   type CancelBookingInput,
-  type CreateAppointmentBody,
 } from './appointments.schemas.js';
 
 @Controller()
@@ -22,15 +20,6 @@ export class AppointmentsController {
       return [];
     }
     return this.appointments.availability(slug, serviceId, barberId || undefined);
-  }
-
-  @Post('shops/:slug/appointments')
-  create(
-    @Param('slug') slug: string,
-    @Body(new ZodValidationPipe(createAppointmentSchema))
-    body: CreateAppointmentBody,
-  ) {
-    return this.appointments.create(slug, body);
   }
 
   @Get('bookings')

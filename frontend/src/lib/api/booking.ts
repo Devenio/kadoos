@@ -27,7 +27,7 @@ export async function getAvailability(
   return z.array(availabilityDaySchema).parse(data);
 }
 
-export async function createAppointment(
+export async function requestZarinpalPayment(
   slug: string,
   body: {
     serviceId: string;
@@ -36,14 +36,50 @@ export async function createAppointment(
     time: string;
     customerName: string;
     customerPhone: string;
+    locale: "en" | "fa";
   },
-): Promise<Appointment> {
-  const data = await apiClient<Appointment>(`/shops/${slug}/appointments`, {
+): Promise<{ redirectUrl: string; authority: string; appointmentCode: string }> {
+  const data = await apiClient<{
+    redirectUrl: string;
+    authority: string;
+    appointmentCode: string;
+  }>("/payments/zarinpal/request", {
     method: "POST",
-    body,
+    body: { ...body, slug },
     ...browserApi,
   });
-  return appointmentSchema.parse(data);
+  return z
+    .object({
+      redirectUrl: z.string().min(1),
+      authority: z.string().min(1),
+      appointmentCode: z.string().min(1),
+    })
+    .parse(data);
+}
+
+export async function verifyZarinpalPayment(
+  status: string,
+  authority: string,
+): Promise<{
+  ok: boolean;
+  reason?: "cancelled" | "failed";
+  shopSlug?: string;
+  appointment?: Appointment;
+}> {
+  const data = await apiClient<unknown>("/payments/zarinpal/verify", {
+    method: "POST",
+    body: { status, authority },
+    ...browserApi,
+  });
+  const parsed = z
+    .object({
+      ok: z.boolean(),
+      reason: z.enum(["cancelled", "failed"]).optional(),
+      shopSlug: z.string().optional(),
+      appointment: appointmentSchema.optional(),
+    })
+    .parse(data);
+  return parsed;
 }
 
 export async function lookupBookings(

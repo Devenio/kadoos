@@ -18,23 +18,60 @@ import type {
   AppointmentDto,
   AvailabilityDayDto,
   CreateAppointmentInput,
+  PaymentSummaryDto,
 } from './appointments.types.js';
+import type { Prisma } from '../generated/prisma/client.js';
+
+const HOLD_TTL_MS = 20 * 60 * 1000;
+const HELD_STATUSES = ['booked', 'pending_payment'] as const;
 
 const appointmentInclude = {
   shop: true,
   barber: true,
   service: true,
+  payment: true,
 } as const;
+
+type AppointmentRecord = Prisma.AppointmentGetPayload<{
+  include: typeof appointmentInclude;
+}>;
 
 @Injectable()
 export class AppointmentsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async expireStaleHolds(): Promise<number> {
+    const cutoff = new Date(Date.now() - HOLD_TTL_MS);
+    const stale = await this.prisma.appointment.findMany({
+      where: {
+        status: 'pending_payment',
+        createdAt: { lt: cutoff },
+      },
+      select: { id: true },
+    });
+    if (stale.length === 0) {
+      return 0;
+    }
+    const ids = stale.map((row) => row.id);
+    await this.prisma.$transaction([
+      this.prisma.appointment.updateMany({
+        where: { id: { in: ids } },
+        data: { status: 'cancelled' },
+      }),
+      this.prisma.payment.updateMany({
+        where: { appointmentId: { in: ids }, status: 'requested' },
+        data: { status: 'cancelled' },
+      }),
+    ]);
+    return ids.length;
+  }
 
   async availability(
     slug: string,
     serviceId: string,
     barberId?: string,
   ): Promise<AvailabilityDayDto[]> {
+    await this.expireStaleHolds();
     const shop = await this.shopOrThrow(slug);
     const service = shop.services.find((item) => item.id === serviceId);
     if (!service) {
@@ -54,7 +91,7 @@ export class AppointmentsService {
     const busy = await this.prisma.appointment.findMany({
       where: {
         shopId: shop.id,
-        status: 'booked',
+        status: { in: [...HELD_STATUSES] },
         startsAt: { lt: rangeEnd },
         endsAt: { gt: rangeStart },
         barberId: { in: barbers.map((item) => item.id) },
@@ -88,7 +125,7 @@ export class AppointmentsService {
     return days;
   }
 
-  async create(
+  async holdChair(
     slug: string,
     input: CreateAppointmentInput,
   ): Promise<AppointmentDto> {
@@ -121,7 +158,7 @@ export class AppointmentsService {
       const busy = await tx.appointment.findMany({
         where: {
           shopId: shop.id,
-          status: 'booked',
+          status: { in: [...HELD_STATUSES] },
           startsAt: { lt: end },
           endsAt: { gt: start },
           barberId: { in: candidates.map((item) => item.id) },
@@ -161,6 +198,7 @@ export class AppointmentsService {
           customerPhone: parsePhone(input.customerPhone),
           startsAt: start,
           endsAt: end,
+          status: 'pending_payment',
         },
         include: appointmentInclude,
       });
@@ -169,11 +207,79 @@ export class AppointmentsService {
     return toDto(created);
   }
 
+  async confirmPaid(
+    appointmentId: string,
+    details: {
+      refId: string | null;
+      cardPan: string | null;
+      fee: number | null;
+      feeType: string | null;
+      rawVerify?: Prisma.InputJsonValue;
+    },
+  ): Promise<AppointmentDto> {
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const existing = await tx.appointment.findUnique({
+        where: { id: appointmentId },
+        include: { payment: true },
+      });
+      if (!existing?.payment) {
+        throw new NotFoundException('Booking not found');
+      }
+      if (existing.payment.status === 'paid' && existing.status === 'booked') {
+        return tx.appointment.findUniqueOrThrow({
+          where: { id: appointmentId },
+          include: appointmentInclude,
+        });
+      }
+
+      await tx.payment.update({
+        where: { id: existing.payment.id },
+        data: {
+          status: 'paid',
+          refId: details.refId,
+          cardPan: details.cardPan,
+          fee: details.fee,
+          feeType: details.feeType,
+          rawVerify: details.rawVerify,
+        },
+      });
+
+      return tx.appointment.update({
+        where: { id: appointmentId },
+        data: { status: 'booked' },
+        include: appointmentInclude,
+      });
+    });
+
+    return toDto(updated);
+  }
+
+  async releaseHold(
+    appointmentId: string,
+    paymentStatus: 'failed' | 'cancelled',
+  ): Promise<void> {
+    await this.prisma.$transaction([
+      this.prisma.appointment.updateMany({
+        where: { id: appointmentId, status: 'pending_payment' },
+        data: { status: 'cancelled' },
+      }),
+      this.prisma.payment.updateMany({
+        where: { appointmentId, status: 'requested' },
+        data: { status: paymentStatus },
+      }),
+    ]);
+  }
+
+  toPublicDto(row: AppointmentRecord): AppointmentDto {
+    return toDto(row);
+  }
+
   async lookup(code: string, phone: string): Promise<AppointmentDto> {
     const appointment = await this.prisma.appointment.findFirst({
       where: {
         code: code.trim().toUpperCase(),
         customerPhone: parsePhone(phone),
+        status: { not: 'pending_payment' },
       },
       include: appointmentInclude,
     });
@@ -230,6 +336,7 @@ export class AppointmentsService {
     date: string,
     phone?: string,
   ): Promise<AppointmentDto[]> {
+    await this.expireStaleHolds();
     const dayStart = tehranLocalToUtc(date, '00:00');
     const dayEnd = tehranLocalToUtc(addDaysYmd(date, 1), '00:00');
     const rows = await this.prisma.appointment.findMany({
@@ -251,15 +358,39 @@ export class AppointmentsService {
   ): Promise<AppointmentDto> {
     const existing = await this.prisma.appointment.findFirst({
       where: { id, shopId },
+      include: { payment: true },
     });
     if (!existing) {
       throw new NotFoundException('Booking not found');
     }
 
-    const updated = await this.prisma.appointment.update({
-      where: { id },
-      data: { status },
-      include: appointmentInclude,
+    if (status === 'completed') {
+      if (
+        existing.status !== 'booked' ||
+        existing.payment?.status !== 'paid'
+      ) {
+        throw new BadRequestException(
+          'Only a paid booking can be marked done',
+        );
+      }
+    }
+
+    if (status === 'booked' && existing.status !== 'booked') {
+      throw new BadRequestException('Payment is required to confirm this chair');
+    }
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      if (status === 'cancelled' && existing.payment?.status === 'requested') {
+        await tx.payment.update({
+          where: { id: existing.payment.id },
+          data: { status: 'cancelled' },
+        });
+      }
+      return tx.appointment.update({
+        where: { id },
+        data: { status },
+        include: appointmentInclude,
+      });
     });
     return toDto(updated);
   }
@@ -280,35 +411,7 @@ export class AppointmentsService {
   }
 }
 
-function toDto(row: {
-  id: string;
-  code: string;
-  customerName: string;
-  customerPhone: string;
-  startsAt: Date;
-  endsAt: Date;
-  status: 'booked' | 'completed' | 'cancelled';
-  shop: {
-    slug: string;
-    nameEn: string;
-    nameFa: string;
-    addressEn: string;
-    addressFa: string;
-    neighborhoodEn: string;
-    neighborhoodFa: string;
-    cityEn: string;
-    cityFa: string;
-    lat: number;
-    lng: number;
-  };
-  barber: { nameEn: string; nameFa: string };
-  service: {
-    nameEn: string;
-    nameFa: string;
-    durationMin: number;
-    priceToman: number;
-  };
-}): AppointmentDto {
+function toDto(row: AppointmentRecord): AppointmentDto {
   return {
     id: row.id,
     code: row.code,
@@ -317,6 +420,7 @@ function toDto(row: {
     customerPhone: row.customerPhone,
     startsAt: row.startsAt.toISOString(),
     endsAt: row.endsAt.toISOString(),
+    payment: toPaymentDto(row.payment),
     shop: {
       slug: row.shop.slug,
       name: { en: row.shop.nameEn, fa: row.shop.nameFa },
@@ -332,6 +436,19 @@ function toDto(row: {
       durationMin: row.service.durationMin,
       priceToman: row.service.priceToman,
     },
+  };
+}
+
+function toPaymentDto(
+  payment: AppointmentRecord['payment'],
+): PaymentSummaryDto | null {
+  if (!payment) {
+    return null;
+  }
+  return {
+    status: payment.status,
+    amount: payment.amount,
+    refId: payment.refId,
   };
 }
 

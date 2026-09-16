@@ -31,6 +31,7 @@ export const shopSummarySchema = z.object({
 
 export const shopDetailSchema = shopSummarySchema.extend({
   description: localizedTextSchema,
+  payoutReady: z.boolean().default(false),
   barbers: z.array(
     z.object({
       id: z.string(),

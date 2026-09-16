@@ -268,13 +268,16 @@ function DeskRow({
     }
   }
 
+  const canComplete = appointment.status === "booked" && appointment.payment?.status === "paid";
+  const canCancel = canComplete || appointment.status === "pending_payment";
+
   return (
     <li className="py-6">
       <div className="flex items-baseline justify-between gap-4">
         <p className="font-display text-3xl tabular-nums text-foreground" dir="ltr">
           {formatAppointmentClock(locale, appointment.startsAt)}
         </p>
-        <p className="text-sm text-muted-foreground">{statusLabel(copy, appointment.status)}</p>
+        <p className="text-sm text-muted-foreground">{statusLabel(copy, appointment)}</p>
       </div>
       <p className="mt-3 text-lg font-medium text-foreground">{appointment.customerName}</p>
       <p className="mt-1 text-base text-muted-foreground" dir="ltr">
@@ -284,7 +287,7 @@ function DeskRow({
         {text(locale, appointment.service.name)} · {text(locale, appointment.barber.name)}
       </p>
 
-      {appointment.status === "booked" ? (
+      {canCancel ? (
         askCancel ? (
           <div className="mt-5 space-y-3">
             <p className="text-base text-foreground">{copy.cancelAsk}</p>
@@ -295,7 +298,7 @@ function DeskRow({
               {copy.cancelNo}
             </Button>
           </div>
-        ) : (
+        ) : canComplete ? (
           <div className="mt-5 grid grid-cols-2 gap-3">
             <Button size="touch" loading={busy} onClick={() => void setStatus("completed")}>
               {copy.complete}
@@ -304,14 +307,21 @@ function DeskRow({
               {copy.cancel}
             </Button>
           </div>
+        ) : (
+          <Button className="mt-5" size="touch" variant="outline" onClick={() => setAskCancel(true)}>
+            {copy.cancel}
+          </Button>
         )
       ) : null}
     </li>
   );
 }
 
-function statusLabel(copy: Dictionary["desk"], status: Appointment["status"]): string {
-  if (status === "cancelled") return copy.cancelled;
-  if (status === "completed") return copy.completed;
-  return copy.booked;
+function statusLabel(copy: Dictionary["desk"], appointment: Appointment): string {
+  if (appointment.status === "cancelled") return copy.cancelled;
+  if (appointment.status === "completed") return copy.completed;
+  if (appointment.status === "pending_payment" || appointment.payment?.status !== "paid") {
+    return copy.unpaid;
+  }
+  return `${copy.booked} · ${copy.paid}`;
 }

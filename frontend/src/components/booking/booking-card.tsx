@@ -65,6 +65,16 @@ export function BookingCard({
           <dt className="text-muted-foreground">{copy.barber}</dt>
           <dd className="text-foreground">{text(locale, booking.barber.name)}</dd>
         </div>
+        {booking.payment?.status === "paid" ? (
+          <div>
+            <dt className="text-muted-foreground">{bookCopy.paid}</dt>
+            <dd className="text-foreground">
+              {booking.payment.refId
+                ? `${bookCopy.refId} ${booking.payment.refId}`
+                : bookCopy.paid}
+            </dd>
+          </div>
+        ) : null}
       </dl>
       <p className="mt-8 text-sm text-muted-foreground">{bookCopy.codeHint}</p>
       <p className="mt-2 font-mono text-3xl tracking-[0.28em] text-foreground" dir="ltr">
@@ -121,5 +131,6 @@ export function BookingCard({
 function statusLabel(copy: Dictionary["booking"], status: Appointment["status"]): string {
   if (status === "cancelled") return copy.cancelled;
   if (status === "completed") return copy.completed;
+  if (status === "pending_payment") return copy.pendingPayment;
   return copy.booked;
 }

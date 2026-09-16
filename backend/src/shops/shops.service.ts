@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { isOpenNow, nextOpenDay, tehranClock } from './shop-hours.js';
+import { isValidIban } from '../payments/iban.js';
 import type {
   ShopDetailDto,
   ShopHoursDto,
@@ -44,6 +44,7 @@ export class ShopsService {
     return {
       ...summary,
       description: { en: shop.descriptionEn, fa: shop.descriptionFa },
+      payoutReady: shop.payoutReady && isValidIban(shop.iban),
       barbers: shop.barbers.map((barber) => ({
         id: barber.id,
         name: { en: barber.nameEn, fa: barber.nameFa },

@@ -4,6 +4,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     readonly status: number,
+    readonly code?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -33,17 +34,22 @@ export async function apiClient<T>(
 
   if (!response.ok) {
     let message = `Request failed: ${response.status}`;
+    let code: string | undefined;
     try {
-      const payload = (await response.json()) as { message?: string | string[] };
+      const payload = (await response.json()) as {
+        message?: string | string[];
+        code?: string;
+      };
       if (typeof payload.message === "string") {
         message = payload.message;
       } else if (Array.isArray(payload.message) && payload.message[0]) {
         message = payload.message[0];
       }
+      code = payload.code;
     } catch {
       // keep fallback
     }
-    throw new ApiError(message, response.status);
+    throw new ApiError(message, response.status, code);
   }
 
   if (response.status === 204) {
