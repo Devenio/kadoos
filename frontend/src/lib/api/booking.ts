@@ -46,16 +46,33 @@ export async function createAppointment(
   return appointmentSchema.parse(data);
 }
 
+export async function lookupBookings(
+  phone: string,
+  code?: string,
+): Promise<Appointment[]> {
+  const query = new URLSearchParams({ phone });
+  if (code) {
+    query.set("code", code);
+  }
+  const data = await apiClient<Appointment | Appointment[]>(
+    `/bookings?${query.toString()}`,
+    { cache: "no-store", ...browserApi },
+  );
+  if (Array.isArray(data)) {
+    return z.array(appointmentSchema).parse(data);
+  }
+  return [appointmentSchema.parse(data)];
+}
+
 export async function lookupAppointment(
   code: string,
   phone: string,
 ): Promise<Appointment> {
-  const query = new URLSearchParams({ code, phone });
-  const data = await apiClient<Appointment>(`/bookings?${query.toString()}`, {
-    cache: "no-store",
-    ...browserApi,
-  });
-  return appointmentSchema.parse(data);
+  const [booking] = await lookupBookings(phone, code);
+  if (!booking) {
+    throw new Error("Booking not found");
+  }
+  return booking;
 }
 
 export async function cancelAppointment(

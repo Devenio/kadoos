@@ -25,6 +25,11 @@ const shop = {
   cityFa: 'تهران',
   descriptionEn: 'Classic cuts.',
   descriptionFa: 'کات کلاسیک',
+  addressEn: '12 Gandhi Street, above Vanak Square',
+  addressFa: 'خیابان گاندی ۱۲، بالای میدان ونک',
+  lat: 35.7572,
+  lng: 51.4099,
+  photoUrl: 'https://example.com/farhad.jpg',
   barbers: [
     {
       id: 'barber-1',

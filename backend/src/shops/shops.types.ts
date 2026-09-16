@@ -16,6 +16,10 @@ export type ShopSummaryDto = {
   tagline: LocalizedText;
   neighborhood: LocalizedText;
   city: LocalizedText;
+  address: LocalizedText;
+  lat: number;
+  lng: number;
+  photoUrl: string;
   openNow: boolean;
   hoursToday: ShopHoursDto;
   nextOpen: ShopHoursDto | null;

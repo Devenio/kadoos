@@ -9,6 +9,7 @@ import {
 } from "@/lib/shop-format";
 import type { ShopSummary } from "@/types/shop";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 type ShopDirectoryProps = {
@@ -48,7 +49,19 @@ export function ShopDirectory({ locale, dictionary, shops }: ShopDirectoryProps)
               href={`/${locale}/shops/${shop.slug}`}
               className="group flex flex-col gap-4 py-8 transition-colors sm:flex-row sm:items-end sm:justify-between"
             >
-              <div className="min-w-0">
+              <div className="min-w-0 sm:flex sm:items-end sm:gap-6">
+                {shop.photoUrl ? (
+                  <span className="relative block aspect-[4/3] w-full overflow-hidden rounded-lg bg-muted sm:h-24 sm:w-32 sm:shrink-0">
+                    <Image
+                      src={shop.photoUrl}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="128px"
+                    />
+                  </span>
+                ) : null}
+                <span className="mt-4 block sm:mt-0">
                 <p className="text-sm text-muted-foreground">
                   {place(locale, shop.neighborhood, shop.city)}
                 </p>
@@ -62,6 +75,7 @@ export function ShopDirectory({ locale, dictionary, shops }: ShopDirectoryProps)
                 <p className="mt-2 max-w-md text-sm leading-7 text-muted-foreground">
                   {text(locale, shop.tagline)}
                 </p>
+                </span>
               </div>
               <div className="flex shrink-0 flex-col gap-1 text-sm text-muted-foreground sm:items-end sm:text-end">
                 <p className="text-foreground">

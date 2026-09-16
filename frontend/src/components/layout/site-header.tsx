@@ -1,18 +1,15 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
-import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
-import type { ThemeId } from "@/lib/theme";
 
 type SiteHeaderProps = {
   locale: Locale;
   dictionary: Dictionary;
-  theme: ThemeId;
 };
 
-export function SiteHeader({ locale, dictionary, theme }: SiteHeaderProps) {
+export function SiteHeader({ locale, dictionary }: SiteHeaderProps) {
   const navigation = [
     { href: `/${locale}/shops`, label: dictionary.nav.shops },
     { href: `/${locale}/booking`, label: dictionary.nav.booking },
@@ -44,7 +41,6 @@ export function SiteHeader({ locale, dictionary, theme }: SiteHeaderProps) {
         </nav>
         <div className="flex items-center gap-1 sm:gap-2">
           <LanguageSwitcher locale={locale} labels={dictionary.language} />
-          <ThemeSwitcher currentTheme={theme} labels={dictionary.theme} />
           <Button asChild size="touch" className="hidden sm:inline-flex">
             <Link href={`/${locale}/shops`}>{dictionary.nav.book}</Link>
           </Button>

@@ -43,7 +43,7 @@ export function ThemeSwitcher({ currentTheme, labels }: ThemeSwitcherProps) {
       <Button
         type="button"
         variant="ghost"
-        size="touch"
+        size="sm"
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-controls={menuId}

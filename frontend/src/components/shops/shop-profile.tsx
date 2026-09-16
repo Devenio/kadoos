@@ -4,6 +4,7 @@ import {
   formatDuration,
   formatPrice,
   hoursLabel,
+  mapUrl,
   orderedHours,
   place,
   text,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/shop-format";
 import type { ShopDetail } from "@/types/shop";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -45,18 +47,44 @@ export function ShopProfile({ locale, dictionary, shop }: ShopProfileProps) {
       >
         {text(locale, shop.name)}
       </h1>
+      {shop.photoUrl ? (
+        <div className="relative mt-8 aspect-[16/9] w-full overflow-hidden rounded-xl bg-muted">
+          <Image
+            src={shop.photoUrl}
+            alt={text(locale, shop.name)}
+            fill
+            className="object-cover"
+            sizes="(min-width: 1024px) 960px, 100vw"
+            priority
+          />
+        </div>
+      ) : null}
       <p className="mt-4 max-w-xl text-lg leading-8 text-muted-foreground">
         {text(locale, shop.tagline)}
       </p>
       <p className="mt-6 max-w-2xl text-base leading-8 text-muted-foreground">
         {text(locale, shop.description)}
       </p>
-      <p className="mt-6 text-sm text-foreground">
+      <p className="mt-6 text-base text-foreground">{text(locale, shop.address)}</p>
+      <a
+        href={mapUrl(shop.lat, shop.lng)}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-2 inline-flex min-h-11 items-center text-base text-foreground underline-offset-4 hover:underline sm:hidden"
+      >
+        {dictionary.map}
+      </a>
+      <p className="mt-2 text-sm text-foreground">
         {shop.openNow ? dictionary.openNow : dictionary.closedNow}
       </p>
-      <div className="mt-8 hidden sm:block">
+      <div className="mt-8 hidden gap-3 sm:flex">
         <Button asChild size="touch">
           <Link href={bookHref}>{dictionary.bookTime}</Link>
+        </Button>
+        <Button asChild size="touch" variant="outline">
+          <a href={mapUrl(shop.lat, shop.lng)} target="_blank" rel="noreferrer">
+            {dictionary.map}
+          </a>
         </Button>
       </div>
 

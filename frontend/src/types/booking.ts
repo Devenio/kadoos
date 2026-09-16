@@ -18,6 +18,11 @@ export const appointmentSchema = z.object({
   shop: z.object({
     slug: z.string(),
     name: localizedTextSchema,
+    address: localizedTextSchema,
+    neighborhood: localizedTextSchema,
+    city: localizedTextSchema,
+    lat: z.number(),
+    lng: z.number(),
   }),
   barber: z.object({
     name: localizedTextSchema,

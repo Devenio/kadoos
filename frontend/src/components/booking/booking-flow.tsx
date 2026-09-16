@@ -1,12 +1,14 @@
 "use client";
 
+import { BookingCard } from "@/components/booking/booking-card";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { ApiError } from "@/lib/api/client";
 import { createAppointment, getAvailability } from "@/lib/api/booking";
+import { rememberBooking } from "@/lib/remembered-bookings";
+import { isMobilePhone } from "@/lib/phone";
 import {
-  formatAppointmentWhen,
   formatClock,
   formatDayButton,
   formatDuration,
@@ -110,6 +112,7 @@ export function BookingFlow({ locale, dictionary, shop }: BookingFlowProps) {
         customerName: name,
         customerPhone: phone,
       });
+      rememberBooking(created);
       setBooking(created);
       setStep("done");
     } catch (caught) {
@@ -124,28 +127,10 @@ export function BookingFlow({ locale, dictionary, shop }: BookingFlowProps) {
       <section className="mx-auto w-full max-w-xl px-6 py-12 sm:px-8">
         <p className="text-sm font-medium text-foreground">{copy.doneEyebrow}</p>
         <h1 className="mt-3 font-display text-4xl text-foreground">{copy.doneTitle}</h1>
-        <p className="mt-6 text-2xl leading-snug text-foreground">
-          {formatAppointmentWhen(locale, booking.startsAt)}
-        </p>
-        <dl className="mt-8 space-y-3 text-base">
-          <div>
-            <dt className="text-muted-foreground">{copy.shop}</dt>
-            <dd className="text-foreground">{text(locale, booking.shop.name)}</dd>
-          </div>
-          <div>
-            <dt className="text-muted-foreground">{copy.service}</dt>
-            <dd className="text-foreground">{text(locale, booking.service.name)}</dd>
-          </div>
-          <div>
-            <dt className="text-muted-foreground">{copy.barber}</dt>
-            <dd className="text-foreground">{text(locale, booking.barber.name)}</dd>
-          </div>
-        </dl>
-        <p className="mt-8 text-sm text-muted-foreground">{copy.codeHint}</p>
-        <p className="mt-2 font-mono text-3xl tracking-[0.28em] text-foreground" dir="ltr">
-          {booking.code}
-        </p>
-        <p className="mt-4 text-sm leading-7 text-muted-foreground">{copy.saveHint}</p>
+        <p className="mt-4 text-base leading-7 text-muted-foreground">{copy.doorHint}</p>
+        <div className="mt-8">
+          <BookingCard locale={locale} dictionary={dictionary} booking={booking} />
+        </div>
         <div className="mt-10 flex flex-col gap-3">
           <Button asChild size="touch">
             <Link href={`/${locale}/booking`}>{copy.findBooking}</Link>
@@ -331,7 +316,7 @@ export function BookingFlow({ locale, dictionary, shop }: BookingFlowProps) {
         {step === "details" ? (
           <Button
             size="touch"
-            disabled={name.trim().length < 2 || phone.replace(/\D/g, "").length < 10}
+            disabled={name.trim().length < 2 || !isMobilePhone(phone)}
             loading={submitting}
             onClick={() => void submit()}
           >

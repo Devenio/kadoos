@@ -71,6 +71,11 @@ type ShopRecord = {
   neighborhoodFa: string;
   cityEn: string;
   cityFa: string;
+  addressEn: string;
+  addressFa: string;
+  lat: number;
+  lng: number;
+  photoUrl: string;
   barbers: { id: string }[];
   services: { priceToman: number }[];
   hours: {
@@ -101,6 +106,10 @@ function toSummary(
     tagline: { en: shop.taglineEn, fa: shop.taglineFa },
     neighborhood: { en: shop.neighborhoodEn, fa: shop.neighborhoodFa },
     city: { en: shop.cityEn, fa: shop.cityFa },
+    address: { en: shop.addressEn, fa: shop.addressFa },
+    lat: shop.lat,
+    lng: shop.lng,
+    photoUrl: shop.photoUrl,
     openNow: isOpenNow(hoursToday, clock),
     hoursToday,
     nextOpen: hoursToday.closed || !isOpenNow(hoursToday, clock)

@@ -1,13 +1,15 @@
 "use client";
 
+import { BookingCard } from "@/components/booking/booking-card";
 import { Button } from "@/components/ui/button";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { ApiError } from "@/lib/api/client";
-import { cancelAppointment, lookupAppointment } from "@/lib/api/booking";
-import { formatAppointmentWhen, text } from "@/lib/shop-format";
+import { cancelAppointment, lookupBookings } from "@/lib/api/booking";
+import { isMobilePhone } from "@/lib/phone";
+import { rememberBooking, rememberMany, rememberedBookings } from "@/lib/remembered-bookings";
 import type { Appointment } from "@/types/booking";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 type FindBookingProps = {
@@ -23,20 +25,24 @@ export function FindBooking({ locale, dictionary }: FindBookingProps) {
   const [code, setCode] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
-  const [askCancel, setAskCancel] = useState(false);
   const [error, setError] = useState<string>();
-  const [booking, setBooking] = useState<Appointment>();
+  const [saved, setSaved] = useState<Appointment[]>([]);
+  const [found, setFound] = useState<Appointment[]>([]);
+
+  useEffect(() => {
+    setSaved(rememberedBookings());
+  }, []);
 
   async function find() {
     setLoading(true);
     setError(undefined);
-    setAskCancel(false);
     try {
-      const found = await lookupAppointment(code.trim(), phone.trim());
-      setBooking(found);
+      const rows = await lookupBookings(phone.trim(), code.trim() || undefined);
+      setFound(rows);
+      rememberMany(rows);
+      setSaved(rememberedBookings());
     } catch (caught) {
-      setBooking(undefined);
+      setFound([]);
       if (caught instanceof ApiError && caught.status === 404) {
         setError(copy.notFound);
       } else {
@@ -47,22 +53,14 @@ export function FindBooking({ locale, dictionary }: FindBookingProps) {
     }
   }
 
-  async function confirmCancel() {
-    if (!booking) {
-      return;
-    }
-    setCancelling(true);
-    setError(undefined);
-    try {
-      const updated = await cancelAppointment(booking.code, phone.trim());
-      setBooking(updated);
-      setAskCancel(false);
-    } catch {
-      setError(copy.cancelError);
-    } finally {
-      setCancelling(false);
-    }
+  async function onCancel(booking: Appointment) {
+    const updated = await cancelAppointment(booking.code, booking.customerPhone);
+    rememberBooking(updated);
+    setFound((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+    setSaved(rememberedBookings());
   }
+
+  const visible = found.length > 0 ? found : saved.filter((item) => item.status === "booked");
 
   return (
     <section className="mx-auto w-full max-w-xl px-6 py-12 sm:px-8">
@@ -70,25 +68,28 @@ export function FindBooking({ locale, dictionary }: FindBookingProps) {
       <h1 className="mt-3 font-display text-4xl text-foreground">{copy.title}</h1>
       <p className="mt-4 text-base leading-7 text-muted-foreground">{copy.body}</p>
 
+      {saved.length > 0 && found.length === 0 ? (
+        <p className="mt-8 text-sm text-muted-foreground">{copy.saved}</p>
+      ) : null}
+
+      {visible.map((booking) => (
+        <div key={booking.id} className="mt-6">
+          <BookingCard
+            locale={locale}
+            dictionary={dictionary}
+            booking={booking}
+            onCancel={onCancel}
+          />
+        </div>
+      ))}
+
       <form
-        className="mt-8 space-y-5"
+        className="mt-10 space-y-5 border-t border-border pt-8"
         onSubmit={(event) => {
           event.preventDefault();
           void find();
         }}
       >
-        <label className="block">
-          <span className="text-base text-foreground">{copy.code}</span>
-          <input
-            value={code}
-            onChange={(event) => setCode(event.target.value.toUpperCase())}
-            autoComplete="off"
-            name="code"
-            dir="ltr"
-            spellCheck={false}
-            className={`${fieldClass} font-mono tracking-[0.2em]`}
-          />
-        </label>
         <label className="block">
           <span className="text-base text-foreground">{copy.phone}</span>
           <input
@@ -102,7 +103,19 @@ export function FindBooking({ locale, dictionary }: FindBookingProps) {
             className={fieldClass}
           />
         </label>
-        <Button size="touch" type="submit" loading={loading} disabled={code.trim().length < 4 || phone.trim().length < 10}>
+        <label className="block">
+          <span className="text-base text-foreground">{copy.code}</span>
+          <input
+            value={code}
+            onChange={(event) => setCode(event.target.value.toUpperCase())}
+            autoComplete="off"
+            name="code"
+            dir="ltr"
+            spellCheck={false}
+            className={`${fieldClass} font-mono tracking-[0.2em]`}
+          />
+        </label>
+        <Button size="touch" type="submit" loading={loading} disabled={!isMobilePhone(phone)}>
           {copy.find}
         </Button>
       </form>
@@ -113,64 +126,9 @@ export function FindBooking({ locale, dictionary }: FindBookingProps) {
         </p>
       ) : null}
 
-      {booking ? (
-        <div className="mt-10 border-t border-border pt-8">
-          <p className="text-sm text-muted-foreground">{statusLabel(copy, booking.status)}</p>
-          <p className="mt-3 text-2xl leading-snug text-foreground">
-            {formatAppointmentWhen(locale, booking.startsAt)}
-          </p>
-          <dl className="mt-6 space-y-3 text-base">
-            <div>
-              <dt className="text-muted-foreground">{copy.shop}</dt>
-              <dd className="text-foreground">{text(locale, booking.shop.name)}</dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">{copy.service}</dt>
-              <dd className="text-foreground">{text(locale, booking.service.name)}</dd>
-            </div>
-            <div>
-              <dt className="text-muted-foreground">{copy.barber}</dt>
-              <dd className="text-foreground">{text(locale, booking.barber.name)}</dd>
-            </div>
-          </dl>
-          <p className="mt-6 font-mono text-2xl tracking-[0.28em] text-foreground" dir="ltr">
-            {booking.code}
-          </p>
-
-          {booking.status === "booked" ? (
-            askCancel ? (
-              <div className="mt-8 flex flex-col gap-3">
-                <p className="text-base text-foreground">{copy.cancelAsk}</p>
-                <Button size="touch" variant="destructive" loading={cancelling} onClick={() => void confirmCancel()}>
-                  {copy.cancelYes}
-                </Button>
-                <Button size="touch" variant="outline" onClick={() => setAskCancel(false)}>
-                  {copy.cancelNo}
-                </Button>
-              </div>
-            ) : (
-              <div className="mt-8 flex flex-col gap-3">
-                <Button size="touch" variant="outline" onClick={() => setAskCancel(true)}>
-                  {copy.cancel}
-                </Button>
-                <Button asChild size="touch" variant="outline">
-                  <Link href={`/${locale}/shops`}>{copy.bookAgain}</Link>
-                </Button>
-              </div>
-            )
-          ) : (
-            <Button asChild size="touch" variant="outline" className="mt-8">
-              <Link href={`/${locale}/shops`}>{copy.bookAgain}</Link>
-            </Button>
-          )}
-        </div>
-      ) : null}
+      <Button asChild size="touch" variant="outline" className="mt-8">
+        <Link href={`/${locale}/shops`}>{copy.bookAgain}</Link>
+      </Button>
     </section>
   );
-}
-
-function statusLabel(copy: Dictionary["booking"], status: Appointment["status"]): string {
-  if (status === "cancelled") return copy.cancelled;
-  if (status === "completed") return copy.completed;
-  return copy.booked;
 }

@@ -35,7 +35,13 @@ export class AppointmentsController {
 
   @Get('bookings')
   lookup(@Query('code') code: string, @Query('phone') phone: string) {
-    return this.appointments.lookup(code ?? '', phone ?? '');
+    if (!phone) {
+      return [];
+    }
+    if (!code) {
+      return this.appointments.listByPhone(phone);
+    }
+    return this.appointments.lookup(code, phone);
   }
 
   @Post('bookings/cancel')

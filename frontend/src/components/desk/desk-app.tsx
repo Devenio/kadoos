@@ -32,20 +32,15 @@ const fieldClass =
   "mt-2 h-14 w-full rounded-xl border border-border bg-background px-4 text-lg text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 export function DeskApp({ locale, dictionary }: DeskAppProps) {
-  const copy = dictionary.desk;
-  const [user, setUser] = useState<DeskUser | null | undefined>(undefined);
+  const [user, setUser] = useState<DeskUser | null>(null);
 
   useEffect(() => {
-    void deskMe().then(setUser);
+    void deskMe().then((next) => {
+      if (next) {
+        setUser(next);
+      }
+    });
   }, []);
-
-  if (user === undefined) {
-    return (
-      <section className="mx-auto w-full max-w-xl px-6 py-16 sm:px-8">
-        <p className="text-base text-muted-foreground">{copy.title}</p>
-      </section>
-    );
-  }
 
   if (!user) {
     return <DeskLogin dictionary={dictionary} onSignedIn={setUser} />;
@@ -225,9 +220,11 @@ function DeskBoard({
       ) : null}
 
       {loading ? (
-        <p className="mt-10 text-base text-muted-foreground">{copy.title}</p>
+        <p className="mt-10 text-base text-muted-foreground">{copy.loading}</p>
       ) : rows.length === 0 ? (
-        <p className="mt-10 text-base text-muted-foreground">{copy.empty}</p>
+        <p className="mt-10 text-base text-muted-foreground">
+          {date === today ? copy.emptyToday : copy.empty}
+        </p>
       ) : (
         <ul className="mt-8 divide-y divide-border border-y border-border">
           {rows.map((row) => (

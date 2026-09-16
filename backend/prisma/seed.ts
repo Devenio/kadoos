@@ -56,6 +56,12 @@ async function main() {
           'Farhad keeps a small room above the square. The chairs are few, the scissors are slow, and the conversation is optional.',
         descriptionFa:
           'فرهاد یک اتاق کوچک بالای میدان دارد. صندلی‌ها کم‌اند، قیچی آرام است، و حرف زدن اجباری نیست.',
+        addressEn: '12 Gandhi Street, above Vanak Square',
+        addressFa: 'خیابان گاندی ۱۲، بالای میدان ونک',
+        lat: 35.7572,
+        lng: 51.4099,
+        photoUrl:
+          'https://images.unsplash.com/photo-1503951914875-bfd160836fd3?auto=format&fit=crop&w=1400&q=80',
         barbers: {
           create: [
             {
@@ -108,6 +114,12 @@ async function main() {
           'A darker room for men who come after work. Music low, clippers fast, the square still busy when you leave.',
         descriptionFa:
           'اتاقی تیره‌تر برای مردهایی که بعد از کار می‌آیند. موسیقی آرام، ماشین تند، و میدان هنوز شلوغ است وقتی بیرون می‌روید.',
+        addressEn: 'Shahrdari Street, above Tajrish Square',
+        addressFa: 'خیابان شهرداری، بالای میدان تجریش',
+        lat: 35.8044,
+        lng: 51.4347,
+        photoUrl:
+          'https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=1400&q=80',
         barbers: {
           create: [
             {
@@ -159,6 +171,12 @@ async function main() {
           'A neighborhood shop that has not changed its hours in a decade. You come for a cut you can live with until next month.',
         descriptionFa:
           'آرایشگاه محله که ساعتش ده سال عوض نشده. می‌آیید برای کاتی که تا ماه بعد با آن زندگی کنید.',
+        addressEn: 'Near Naziabad Metro, south Tehran',
+        addressFa: 'نزدیک مترو نازی‌آباد، جنوب تهران',
+        lat: 35.6478,
+        lng: 51.3967,
+        photoUrl:
+          'https://images.unsplash.com/photo-1599351431202-1e0f013fdcec?auto=format&fit=crop&w=1400&q=80',
         barbers: {
           create: [
             {

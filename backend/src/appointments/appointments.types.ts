@@ -26,7 +26,15 @@ export type AppointmentDto = {
   customerPhone: string;
   startsAt: string;
   endsAt: string;
-  shop: { slug: string; name: LocalizedText };
+  shop: {
+    slug: string;
+    name: LocalizedText;
+    address: LocalizedText;
+    neighborhood: LocalizedText;
+    city: LocalizedText;
+    lat: number;
+    lng: number;
+  };
   barber: { name: LocalizedText };
   service: {
     name: LocalizedText;

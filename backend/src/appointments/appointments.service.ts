@@ -13,6 +13,7 @@ import {
   weekdayFromYmd,
 } from '../shops/shop-hours.js';
 import { isBarberFree, startTimesForDay } from './availability.js';
+import { normalizePhone } from './phone.js';
 import type {
   AppointmentDto,
   AvailabilityDayDto,
@@ -157,7 +158,7 @@ export class AppointmentsService {
           barberId: barber.id,
           serviceId: service.id,
           customerName: input.customerName.trim(),
-          customerPhone: normalizePhone(input.customerPhone),
+          customerPhone: parsePhone(input.customerPhone),
           startsAt: start,
           endsAt: end,
         },
@@ -172,7 +173,7 @@ export class AppointmentsService {
     const appointment = await this.prisma.appointment.findFirst({
       where: {
         code: code.trim().toUpperCase(),
-        customerPhone: normalizePhone(phone),
+        customerPhone: parsePhone(phone),
       },
       include: appointmentInclude,
     });
@@ -182,11 +183,28 @@ export class AppointmentsService {
     return toDto(appointment);
   }
 
+  async listByPhone(phone: string): Promise<AppointmentDto[]> {
+    const rows = await this.prisma.appointment.findMany({
+      where: {
+        customerPhone: parsePhone(phone),
+        status: 'booked',
+        startsAt: { gt: new Date() },
+      },
+      orderBy: { startsAt: 'asc' },
+      take: 5,
+      include: appointmentInclude,
+    });
+    if (rows.length === 0) {
+      throw new NotFoundException('Booking not found');
+    }
+    return rows.map(toDto);
+  }
+
   async cancelByGuest(code: string, phone: string): Promise<AppointmentDto> {
     const appointment = await this.prisma.appointment.findFirst({
       where: {
         code: code.trim().toUpperCase(),
-        customerPhone: normalizePhone(phone),
+        customerPhone: parsePhone(phone),
         status: 'booked',
       },
     });
@@ -217,7 +235,7 @@ export class AppointmentsService {
     const rows = await this.prisma.appointment.findMany({
       where: {
         shopId,
-        ...(phone ? { customerPhone: normalizePhone(phone) } : {}),
+        ...(phone ? { customerPhone: parsePhone(phone) } : {}),
         startsAt: { gte: dayStart, lt: dayEnd },
       },
       orderBy: { startsAt: 'asc' },
@@ -270,7 +288,19 @@ function toDto(row: {
   startsAt: Date;
   endsAt: Date;
   status: 'booked' | 'completed' | 'cancelled';
-  shop: { slug: string; nameEn: string; nameFa: string };
+  shop: {
+    slug: string;
+    nameEn: string;
+    nameFa: string;
+    addressEn: string;
+    addressFa: string;
+    neighborhoodEn: string;
+    neighborhoodFa: string;
+    cityEn: string;
+    cityFa: string;
+    lat: number;
+    lng: number;
+  };
   barber: { nameEn: string; nameFa: string };
   service: {
     nameEn: string;
@@ -290,6 +320,11 @@ function toDto(row: {
     shop: {
       slug: row.shop.slug,
       name: { en: row.shop.nameEn, fa: row.shop.nameFa },
+      address: { en: row.shop.addressEn, fa: row.shop.addressFa },
+      neighborhood: { en: row.shop.neighborhoodEn, fa: row.shop.neighborhoodFa },
+      city: { en: row.shop.cityEn, fa: row.shop.cityFa },
+      lat: row.shop.lat,
+      lng: row.shop.lng,
     },
     barber: { name: { en: row.barber.nameEn, fa: row.barber.nameFa } },
     service: {
@@ -300,11 +335,10 @@ function toDto(row: {
   };
 }
 
-export function normalizePhone(value: string): string {
-  const digits = value.replace(/\D/g, '');
-  const local = digits.startsWith('98') ? `0${digits.slice(2)}` : digits;
-  if (!/^09\d{9}$/.test(local)) {
+function parsePhone(value: string): string {
+  try {
+    return normalizePhone(value);
+  } catch {
     throw new BadRequestException('Enter a mobile number like 09121234567');
   }
-  return local;
 }
