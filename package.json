@@ -1,0 +1,12 @@
+{
+  "name": "kadoos",
+  "private": true,
+  "description": "Salon appointment booking platform",
+  "scripts": {
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run start:dev --prefix backend",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "prisma:generate": "npm run prisma:generate --prefix backend"
+  }
+}
