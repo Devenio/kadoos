@@ -6,7 +6,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { isLocale, localeDirection, locales, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { parseTheme, themeCookieName } from "@/lib/theme";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -44,6 +44,9 @@ export default async function LocaleLayout({
   const dictionary = getDictionary(locale);
   const cookieStore = await cookies();
   const theme = parseTheme(cookieStore.get(themeCookieName)?.value);
+  const headerStore = await headers();
+  const pathname = headerStore.get("x-pathname") ?? "";
+  const isDesk = /\/desk(\/|$)/.test(pathname);
 
   return (
     <div
@@ -52,9 +55,13 @@ export default async function LocaleLayout({
       className="flex flex-1 flex-col"
     >
       <DocumentLocale locale={locale} />
-      <SiteHeader locale={locale} dictionary={dictionary} />
+      {isDesk ? null : (
+        <SiteHeader locale={locale} dictionary={dictionary} />
+      )}
       <main className="flex flex-1 flex-col">{children}</main>
-      <SiteFooter locale={locale} dictionary={dictionary} theme={theme} />
+      {isDesk ? null : (
+        <SiteFooter locale={locale} dictionary={dictionary} theme={theme} />
+      )}
     </div>
   );
 }
