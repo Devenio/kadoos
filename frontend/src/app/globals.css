@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is([data-theme="ink"] *, [data-theme="oak"] *, [data-theme="brass"] *));
 
 @theme inline {
   --color-background: var(--background);
@@ -23,9 +23,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Cormorant Garamond", "Cormorant Garamond Fallback", Georgia,
-    "Times New Roman", serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -36,7 +33,9 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
+:root:not([data-theme]),
+html[data-theme="ivory"] {
+  color-scheme: light;
   --radius: 0.5rem;
   --background: oklch(0.985 0.008 85);
   --foreground: oklch(0.22 0.025 50);
@@ -58,6 +57,144 @@
   --ring: oklch(0.45 0.04 45);
 }
 
+html[data-theme="marble"] {
+  color-scheme: light;
+  --radius: 0.375rem;
+  --background: oklch(0.975 0.004 260);
+  --foreground: oklch(0.2 0.01 260);
+  --card: oklch(0.99 0.002 260);
+  --card-foreground: oklch(0.2 0.01 260);
+  --popover: oklch(0.99 0.002 260);
+  --popover-foreground: oklch(0.2 0.01 260);
+  --primary: oklch(0.32 0.03 250);
+  --primary-foreground: oklch(0.98 0.005 260);
+  --secondary: oklch(0.945 0.008 250);
+  --secondary-foreground: oklch(0.28 0.02 250);
+  --muted: oklch(0.95 0.006 250);
+  --muted-foreground: oklch(0.5 0.015 250);
+  --accent: oklch(0.94 0.01 250);
+  --accent-foreground: oklch(0.28 0.02 250);
+  --destructive: oklch(0.55 0.18 25);
+  --border: oklch(0.9 0.008 250);
+  --input: oklch(0.9 0.008 250);
+  --ring: oklch(0.45 0.03 250);
+}
+
+html[data-theme="cedar"] {
+  color-scheme: light;
+  --radius: 0.5rem;
+  --background: oklch(0.94 0.02 75);
+  --foreground: oklch(0.24 0.03 50);
+  --card: oklch(0.96 0.016 75);
+  --card-foreground: oklch(0.24 0.03 50);
+  --popover: oklch(0.96 0.016 75);
+  --popover-foreground: oklch(0.24 0.03 50);
+  --primary: oklch(0.38 0.06 40);
+  --primary-foreground: oklch(0.97 0.015 80);
+  --secondary: oklch(0.9 0.025 75);
+  --secondary-foreground: oklch(0.28 0.04 50);
+  --muted: oklch(0.9 0.022 75);
+  --muted-foreground: oklch(0.48 0.03 55);
+  --accent: oklch(0.89 0.03 70);
+  --accent-foreground: oklch(0.28 0.04 50);
+  --destructive: oklch(0.52 0.16 25);
+  --border: oklch(0.84 0.03 70);
+  --input: oklch(0.84 0.03 70);
+  --ring: oklch(0.42 0.05 45);
+}
+
+html[data-theme="ink"] {
+  color-scheme: dark;
+  --radius: 0.5rem;
+  --background: oklch(0.18 0.012 70);
+  --foreground: oklch(0.93 0.015 85);
+  --card: oklch(0.21 0.012 70);
+  --card-foreground: oklch(0.93 0.015 85);
+  --popover: oklch(0.21 0.012 70);
+  --popover-foreground: oklch(0.93 0.015 85);
+  --primary: oklch(0.78 0.08 80);
+  --primary-foreground: oklch(0.2 0.02 70);
+  --secondary: oklch(0.26 0.014 70);
+  --secondary-foreground: oklch(0.9 0.015 85);
+  --muted: oklch(0.26 0.012 70);
+  --muted-foreground: oklch(0.72 0.02 80);
+  --accent: oklch(0.28 0.016 70);
+  --accent-foreground: oklch(0.93 0.015 85);
+  --destructive: oklch(0.7 0.16 25);
+  --border: oklch(0.32 0.015 70);
+  --input: oklch(0.32 0.015 70);
+  --ring: oklch(0.78 0.08 80);
+}
+
+html[data-theme="oak"] {
+  color-scheme: dark;
+  --radius: 0.5rem;
+  --background: oklch(0.22 0.03 55);
+  --foreground: oklch(0.94 0.02 80);
+  --card: oklch(0.26 0.03 55);
+  --card-foreground: oklch(0.94 0.02 80);
+  --popover: oklch(0.26 0.03 55);
+  --popover-foreground: oklch(0.94 0.02 80);
+  --primary: oklch(0.7 0.1 55);
+  --primary-foreground: oklch(0.2 0.03 50);
+  --secondary: oklch(0.3 0.03 55);
+  --secondary-foreground: oklch(0.92 0.02 80);
+  --muted: oklch(0.3 0.028 55);
+  --muted-foreground: oklch(0.74 0.03 75);
+  --accent: oklch(0.32 0.032 55);
+  --accent-foreground: oklch(0.94 0.02 80);
+  --destructive: oklch(0.7 0.16 25);
+  --border: oklch(0.36 0.03 55);
+  --input: oklch(0.36 0.03 55);
+  --ring: oklch(0.7 0.1 55);
+}
+
+html[data-theme="brass"] {
+  color-scheme: dark;
+  --radius: 0.375rem;
+  --background: oklch(0.16 0.01 80);
+  --foreground: oklch(0.93 0.02 90);
+  --card: oklch(0.19 0.012 80);
+  --card-foreground: oklch(0.93 0.02 90);
+  --popover: oklch(0.19 0.012 80);
+  --popover-foreground: oklch(0.93 0.02 90);
+  --primary: oklch(0.76 0.12 85);
+  --primary-foreground: oklch(0.18 0.02 80);
+  --secondary: oklch(0.24 0.015 80);
+  --secondary-foreground: oklch(0.9 0.02 90);
+  --muted: oklch(0.24 0.012 80);
+  --muted-foreground: oklch(0.72 0.03 85);
+  --accent: oklch(0.26 0.018 80);
+  --accent-foreground: oklch(0.93 0.02 90);
+  --destructive: oklch(0.7 0.16 25);
+  --border: oklch(0.3 0.02 80);
+  --input: oklch(0.3 0.02 80);
+  --ring: oklch(0.76 0.12 85);
+}
+
+html[lang="en"] {
+  --body-font: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --heading-font: "Cormorant Garamond", "Cormorant Garamond Fallback", Georgia,
+    "Times New Roman", serif;
+}
+
+html[lang="fa"] {
+  --body-font: "Vazirmatn", "Vazirmatn Fallback", ui-sans-serif, system-ui,
+    sans-serif;
+  --heading-font: "Amiri", "Amiri Fallback", Georgia, serif;
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--heading-font);
+  }
+
+  .font-fa {
+    font-family: "Vazirmatn", "Vazirmatn Fallback", ui-sans-serif, system-ui,
+      sans-serif;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -69,6 +206,7 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--body-font);
   }
 
   ::selection {

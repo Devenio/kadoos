@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Geist, Geist_Mono } from "next/font/google";
-import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
+import { cookies, headers } from "next/headers";
+import { Amiri, Cormorant_Garamond, Geist, Geist_Mono, Vazirmatn } from "next/font/google";
+import { isLocale, localeDirection } from "@/i18n/config";
+import { parseTheme, themeCookieName } from "@/lib/theme";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,23 +21,39 @@ const cormorant = Cormorant_Garamond({
   weight: ["500", "600", "700"],
 });
 
+const vazirmatn = Vazirmatn({
+  variable: "--font-vazirmatn",
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const amiri = Amiri({
+  variable: "--font-amiri",
+  subsets: ["arabic", "latin"],
+  weight: ["400", "700"],
+});
+
 export const metadata: Metadata = {
-  title: "Kadoos — Beauty, booked with care",
-  description:
-    "A modern appointment booking platform for beauty salons. Discover a salon, choose a specialist, and reserve a time that works.",
+  title: "Kadoos",
+  description: "Appointment booking for men’s barbershops.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const headerStore = await headers();
+  const cookieStore = await cookies();
+  const localeHeader = headerStore.get("x-locale");
+  const locale = isLocale(localeHeader) ? localeHeader : "en";
+  const theme = parseTheme(cookieStore.get(themeCookieName)?.value);
+
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} h-full antialiased`}
+      lang={locale}
+      dir={localeDirection(locale)}
+      data-theme={theme}
+      data-scroll-behavior="smooth"
+      className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${vazirmatn.variable} ${amiri.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col font-sans">
-        <SiteHeader />
-        <main className="flex flex-1 flex-col">{children}</main>
-        <SiteFooter />
-      </body>
+      <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );
 }

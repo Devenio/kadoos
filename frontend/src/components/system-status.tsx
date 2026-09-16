@@ -1,17 +1,19 @@
 import { getHealth } from "@/lib/api/health";
 
-export async function SystemStatus() {
+type SystemStatusProps = {
+  available: string;
+  unavailable: string;
+};
+
+export async function SystemStatus({
+  available,
+  unavailable,
+}: SystemStatusProps) {
   const health = await getHealth().catch(() => null);
 
   if (!health || health.status !== "ok") {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Booking is temporarily unavailable.
-      </p>
-    );
+    return <p className="text-sm text-muted-foreground">{unavailable}</p>;
   }
 
-  return (
-    <p className="text-sm text-muted-foreground">Appointments available.</p>
-  );
+  return <p className="text-sm text-muted-foreground">{available}</p>;
 }

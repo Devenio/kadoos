@@ -1,6 +1,8 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { defaultLocale, isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 
 export default function Error({
@@ -9,7 +11,9 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const dictionary = getDictionary("en");
+  const params = useParams<{ locale?: string }>();
+  const locale = isLocale(params.locale) ? params.locale : defaultLocale;
+  const dictionary = getDictionary(locale);
 
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-6 py-24 sm:px-8">

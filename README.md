@@ -1,6 +1,6 @@
 # Kadoos
 
-A modern appointment booking platform for beauty salons.
+A modern appointment booking platform for men’s barbershops.
 
 Frontend and backend live in separate folders and are developed independently.
 
@@ -69,7 +69,7 @@ Expected when Postgres is running:
 {"status":"ok","database":"connected"}
 ```
 
-Open `http://localhost:3000` for the public landing page. The footer reads the health endpoint and shows whether booking is available.
+Open `http://localhost:3000` for the public landing page (English at `/en`, Persian at `/fa`). The footer reads the health endpoint and shows whether booking is available.
 
 ## Milestone 1
 

@@ -1,22 +1,33 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { ThemeSwitcher } from "@/components/layout/theme-switcher";
+import type { Locale } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/dictionaries";
+import type { ThemeId } from "@/lib/theme";
 
-const navigation = [
-  { href: "/#how-it-works", label: "How it works" },
-  { href: "/#for-salons", label: "For salons" },
-] as const;
+type SiteHeaderProps = {
+  locale: Locale;
+  dictionary: Dictionary;
+  theme: ThemeId;
+};
 
-export function SiteHeader() {
+export function SiteHeader({ locale, dictionary, theme }: SiteHeaderProps) {
+  const navigation = [
+    { href: `/${locale}#how-it-works`, label: dictionary.nav.howItWorks },
+    { href: `/${locale}#for-barbers`, label: dictionary.nav.forBarbers },
+  ] as const;
+
   return (
     <header className="sticky top-0 z-20 border-b border-border/80 bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-6 py-4 sm:px-8">
         <Link
-          href="/"
+          href={`/${locale}`}
           className="font-display text-xl tracking-tight text-foreground transition-opacity hover:opacity-80"
         >
-          Kadoos
+          {dictionary.brand}
         </Link>
-        <nav className="hidden items-center gap-8 text-sm text-muted-foreground sm:flex">
+        <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
           {navigation.map((item) => (
             <Link
               key={item.href}
@@ -27,11 +38,15 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <Button asChild size="sm">
-          <Link href="/#how-it-works">Book an appointment</Link>
-        </Button>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <LanguageSwitcher locale={locale} labels={dictionary.language} />
+          <ThemeSwitcher currentTheme={theme} labels={dictionary.theme} />
+          <Button asChild size="sm">
+            <Link href={`/${locale}#how-it-works`}>{dictionary.nav.book}</Link>
+          </Button>
+        </div>
       </div>
-      <nav className="flex items-center gap-5 border-t border-border/70 px-6 py-3 text-sm text-muted-foreground sm:hidden">
+      <nav className="flex items-center gap-5 border-t border-border/70 px-6 py-3 text-sm text-muted-foreground md:hidden">
         {navigation.map((item) => (
           <Link
             key={item.href}
