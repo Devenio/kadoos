@@ -6,3 +6,73 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Shop {
+  id               String      @id @default(cuid())
+  slug             String      @unique
+  sortOrder        Int         @default(0)
+  published        Boolean     @default(true)
+  nameEn           String
+  nameFa           String
+  taglineEn        String
+  taglineFa        String
+  neighborhoodEn   String
+  neighborhoodFa   String
+  cityEn           String
+  cityFa           String
+  descriptionEn    String
+  descriptionFa    String
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  barbers          Barber[]
+  services         Service[]
+  hours            ShopHours[]
+
+  @@index([published, sortOrder])
+}
+
+model Barber {
+  id        String   @id @default(cuid())
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  nameEn    String
+  nameFa    String
+  titleEn   String
+  titleFa   String
+  bioEn     String
+  bioFa     String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([shopId, sortOrder])
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  shopId      String
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  nameEn      String
+  nameFa      String
+  durationMin Int
+  priceToman  Int
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([shopId, sortOrder])
+}
+
+model ShopHours {
+  id        String   @id @default(cuid())
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  weekday   Int
+  closed    Boolean  @default(false)
+  opensAt   String?
+  closesAt  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([shopId, weekday])
+}

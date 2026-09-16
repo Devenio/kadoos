@@ -14,6 +14,7 @@ type SiteHeaderProps = {
 
 export function SiteHeader({ locale, dictionary, theme }: SiteHeaderProps) {
   const navigation = [
+    { href: `/${locale}/shops`, label: dictionary.nav.shops },
     { href: `/${locale}#how-it-works`, label: dictionary.nav.howItWorks },
     { href: `/${locale}#for-barbers`, label: dictionary.nav.forBarbers },
   ] as const;
@@ -46,7 +47,7 @@ export function SiteHeader({ locale, dictionary, theme }: SiteHeaderProps) {
           <LanguageSwitcher locale={locale} labels={dictionary.language} />
           <ThemeSwitcher currentTheme={theme} labels={dictionary.theme} />
           <Button asChild size="sm">
-            <Link href={`/${locale}#how-it-works`}>{dictionary.nav.book}</Link>
+            <Link href={`/${locale}/shops`}>{dictionary.nav.book}</Link>
           </Button>
         </div>
       </div>

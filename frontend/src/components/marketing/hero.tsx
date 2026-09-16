@@ -36,7 +36,7 @@ export function Hero({ locale, dictionary }: HeroProps) {
       </p>
       <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
         <Button asChild size="xl">
-          <Link href={`/${locale}#how-it-works`}>
+          <Link href={`/${locale}/shops`}>
             {dictionary.primary}
             <ArrowRightIcon className="rtl:rotate-180" />
           </Link>

@@ -7,6 +7,8 @@
     "dev:backend": "npm run start:dev --prefix backend",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "prisma:generate": "npm run prisma:generate --prefix backend"
+    "prisma:generate": "npm run prisma:generate --prefix backend",
+    "prisma:migrate": "npm run prisma:migrate --prefix backend",
+    "prisma:seed": "npm run prisma:seed --prefix backend"
   }
 }

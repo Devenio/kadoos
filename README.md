@@ -39,6 +39,8 @@ cp frontend/.env.example frontend/.env.local
 npm install --prefix backend
 npm install --prefix frontend
 npm run prisma:generate
+npm run prisma:migrate -- --name init_shops
+npm run prisma:seed
 ```
 
 4. Run the API:
@@ -69,11 +71,26 @@ Expected when Postgres is running:
 {"status":"ok","database":"connected"}
 ```
 
-Open `http://localhost:3000` for the public landing page (English at `/en`, Persian at `/fa`). The footer reads the health endpoint and shows whether booking is available.
+Open `http://localhost:3000/en/shops` or `/fa/shops` for the public shop directory.
+
+```bash
+curl http://127.0.0.1:4000/shops
+```
+
+## Milestone 2
+
+Public shop discovery is live. Customers can browse seeded barbershops and open a shop’s barbers, services, and hours.
+
+- `GET /shops`
+- `GET /shops/:slug`
+- English: `/en/shops`
+- Persian: `/fa/shops`
+
+Booking, authentication, and owner dashboards are not in this milestone.
 
 ## Milestone 1
 
-This repository currently contains the project foundation and design system only:
+Project foundation and design system:
 
 - App scaffolding
 - Design tokens and core UI
@@ -81,4 +98,4 @@ This repository currently contains the project foundation and design system only
 - Database connection
 - `GET /health`
 
-No authentication, salons, or booking yet.
+No authentication, payments, or booking engine yet.
