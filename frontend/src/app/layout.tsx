@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { Amiri, Cormorant_Garamond, Geist, Geist_Mono, Vazirmatn } from "next/font/google";
-import { isLocale, localeDirection } from "@/i18n/config";
+import { isLocale } from "@/i18n/config";
 import { parseTheme, themeCookieName } from "@/lib/theme";
 import "./globals.css";
 
@@ -43,12 +43,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const cookieStore = await cookies();
   const localeHeader = headerStore.get("x-locale");
   const locale = isLocale(localeHeader) ? localeHeader : "en";
+  const direction = locale === "fa" ? "rtl" : "ltr";
   const theme = parseTheme(cookieStore.get(themeCookieName)?.value);
 
   return (
     <html
       lang={locale}
-      dir={localeDirection(locale)}
+      dir={direction}
       data-theme={theme}
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${vazirmatn.variable} ${amiri.variable} h-full antialiased`}

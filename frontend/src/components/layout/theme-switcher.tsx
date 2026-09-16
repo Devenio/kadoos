@@ -58,7 +58,7 @@ export function ThemeSwitcher({ currentTheme, labels }: ThemeSwitcherProps) {
           id={menuId}
           role="listbox"
           aria-label={labels.label}
-          className="absolute end-0 top-[calc(100%+0.5rem)] z-30 w-52 border border-border bg-background p-1 shadow-sm"
+          className="absolute end-0 top-[calc(100%+0.5rem)] z-50 w-52 overflow-hidden rounded-lg border border-border bg-background p-1 shadow-lg"
         >
           {themes.map((item) => {
             const selected = item.id === theme;

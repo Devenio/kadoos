@@ -70,8 +70,8 @@ export const en = {
   },
   language: {
     label: "Language",
-    en: "EN",
-    fa: "فا",
+    en: "English",
+    fa: "فارسی",
   },
   theme: {
     label: "Theme",
@@ -156,8 +156,8 @@ export const fa = {
   },
   language: {
     label: "زبان",
-    en: "EN",
-    fa: "فا",
+    en: "English",
+    fa: "فارسی",
   },
   theme: {
     label: "تم",

@@ -11,7 +11,7 @@ export function SiteFooter({ dictionary }: SiteFooterProps) {
     <footer className="border-t border-border">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8">
         <p className="font-display text-lg text-foreground">{dictionary.brand}</p>
-        <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:items-end">
+        <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:items-end sm:text-end">
           <p>{dictionary.footer.tagline}</p>
           <Suspense fallback={<StatusFallback />}>
             <SystemStatus

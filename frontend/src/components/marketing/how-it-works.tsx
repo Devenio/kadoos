@@ -32,7 +32,10 @@ export function HowItWorks({ locale, dictionary }: HowItWorksProps) {
         <ol className="mt-14 grid gap-10 sm:grid-cols-3 sm:gap-12">
           {dictionary.steps.map((step) => (
             <li key={step.number} className="border-t border-border pt-6">
-              <p className="font-display text-2xl text-muted-foreground">
+              <p
+                className="font-display text-2xl tabular-nums text-muted-foreground"
+                dir="ltr"
+              >
                 {step.number}
               </p>
               <h3 className="mt-4 text-base font-medium text-foreground">

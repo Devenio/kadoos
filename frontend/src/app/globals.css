@@ -200,8 +200,13 @@ html[lang="fa"] {
     @apply border-border outline-ring/50;
   }
 
-  html {
-    scroll-behavior: smooth;
+  html[dir="rtl"] {
+    text-align: start;
+  }
+
+  html[dir="rtl"] .font-display,
+  html[dir="rtl"] .tracking-tight {
+    letter-spacing: 0;
   }
 
   body {
